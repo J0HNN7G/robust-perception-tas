@@ -1,0 +1,33 @@
+DATASET:
+  root_dataset: "data/sets/PennFudanPed"
+  list_train: "data/sets/PennFudanPed"
+  list_val: "data/sets/PennFudanPed"
+  num_classes: 2
+
+MODEL:
+  arch: "maskrcnn_resnet50_fpn"
+  weights: ""
+
+TRAIN:
+  batch_size: 2
+  num_epoch: 10
+  start_epoch: 0
+  optim: "SGD"
+  lr: 0.005
+  lr_step_size: 3
+  lr_gamma: 0.1
+  momentum: 0.9
+  weight_decay: 0.0005
+  num_workers: 4
+  early_stop: 1
+  disp_iter: 10
+  seed: 42
+
+VAL:
+  checkpoint: "best_checkpoint.pth"
+
+TEST:
+  checkpoint: "best_checkpoint.pth"
+  result: "./results"
+
+DIR: "ckpt/maskrcnn_resnet50_fpn-pennfudan"

@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import setuptools
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='',
+    name='Autonomous Perception Robustness Testing Framework',
     version='1.0.0',
     author='Jonathan Gustafsson Frennert',
     description='Robustness Testing for Image Models in Autonomous Systems',
@@ -19,14 +18,9 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ),
     install_requires=[
-        'jupyterlab',
         'numpy',
         'Pillow',
-        'opencv-python',
         'matplotlib',
-        'tqdm',
-        'yacs',
-        'albumentations',
-        'nuscenes-devkit'
+        'yacs'
     ]
 )

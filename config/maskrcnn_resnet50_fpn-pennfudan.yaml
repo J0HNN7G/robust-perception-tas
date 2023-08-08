@@ -6,28 +6,28 @@ DATASET:
 
 MODEL:
   arch: "maskrcnn_resnet50_fpn"
-  weights: ""
 
 TRAIN:
-  batch_size: 2
+  batch_size: 1
   num_epoch: 10
   start_epoch: 0
   optim: "SGD"
+  momentum: 0.9
+  weight_decay: 0.0005
   lr: 0.005
   lr_step_size: 3
   lr_gamma: 0.1
-  momentum: 0.9
-  weight_decay: 0.0005
-  num_workers: 4
   early_stop: 1
+  num_workers: 4
   disp_iter: 10
   seed: 42
 
 VAL:
-  checkpoint: "best_checkpoint.pth"
+  batch_size: 1
+  checkpoint: "weights_best.pth"
 
 TEST:
-  checkpoint: "best_checkpoint.pth"
+  checkpoint: "weights_best.pth"
   result: "./results"
 
 DIR: "ckpt/maskrcnn_resnet50_fpn-pennfudan"

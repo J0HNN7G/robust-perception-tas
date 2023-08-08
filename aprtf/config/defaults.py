@@ -27,6 +27,17 @@ _C.MODEL = CN()
 _C.MODEL.arch = "fasterrcnn_resnet50_fpn_v2"
 # filepath to pre-trained weights
 _C.MODEL.weights = ""
+# filepath to history
+_C.MODEL.history_name = ""
+# history name
+_C.MODEL.history_name = "history.tsv"
+# history headers
+_C.MODEL.headers = []
+# log name
+_C.MODEL.log_name = "log.txt"
+# config name
+_C.MODEL.config_name = "config.yaml"
+
 # -----------------------------------------------------------------------------
 # Training
 # -----------------------------------------------------------------------------

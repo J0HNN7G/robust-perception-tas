@@ -1,6 +1,8 @@
 ### Personal ###
 data/sets/*
 ckpt/*
+wandb_key.txt
+wandb/*
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,visualstudiocode

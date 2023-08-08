@@ -8,7 +8,20 @@ import os
 import numpy as np
 from PIL import Image
 import torch
-from references import transforms as T
+
+# bounding boxes
+from torchvision.ops import clip_boxes_to_image, remove_small_boxes
+from aprtf.references import transforms as T
+
+
+def get_transform(train):
+    transforms = []
+    transforms.append(T.PILToTensor())
+    transforms.append(T.ConvertImageDtype(torch.float))
+    if train:
+        transforms.append(T.RandomHorizontalFlip(0.5))
+    return T.Compose(transforms)
+
 
 class PedestrianDetectionDataset(object):
     def __init__(self, root, transforms):
@@ -77,10 +90,40 @@ class PedestrianDetectionDataset(object):
         return len(self.imgs)
 
 
-def get_transform(train):
-    transforms = []
-    transforms.append(T.PILToTensor())
-    transforms.append(T.ConvertImageDtype(torch.float))
-    if train:
-        transforms.append(T.RandomHorizontalFlip(0.5))
-    return T.Compose(transforms)
+class PedestrianDetectionDataset2(torch.utils.data.Dataset):
+    def __init__(self, images, boxes, transforms, bb_min_len=40):
+        assert len(images) == len(boxes)
+        self.images = images
+        self.boxes = boxes
+        self.transforms = transforms
+        self.bb_min_len = bb_min_len
+
+    def __getitem__(self, idx):
+        # image
+        img_path = self.images[idx]
+        img = Image.open(img_path).convert("RGB")
+        
+        # boxes
+        bbs = self.boxes[idx]
+        bbs = torch.as_tensor(bbs, dtype=torch.float32)
+        bbs = torch.reshape(bbs, (-1,4))
+        # clip all boxes to image dims
+        bbs = clip_boxes_to_image(bbs, (img.size[1], img.size[0]))
+        # remove boxes with too small size
+        #bbs = bbs[remove_small_boxes(bbs, self.bb_min_len)]
+        
+        num_objs = len(bbs)
+        target = {}
+        target["boxes"] = bbs
+        target["labels"] = torch.ones((num_objs,), dtype=torch.int64)
+        target["image_id"] = torch.tensor([idx])
+        target["area"] = (bbs[..., 3] - bbs[..., 1]) * (bbs[..., 2] - bbs[..., 0])
+        target["iscrowd"] = torch.zeros((num_objs,), dtype=torch.int64)
+
+        if self.transforms is not None:
+            img, target = self.transforms(img, target)
+
+        return img, target
+
+    def __len__(self):
+        return len(self.images)

@@ -99,6 +99,7 @@ def evaluate(model, data_loader, device):
         
         # you need to do .item() because an int is not treated the same as a tensor int
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        # figure out to get some instance based annotations 
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time

@@ -14,13 +14,18 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=(
         'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: BSD 3 License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ),
     install_requires=[
         'numpy',
-        'Pillow',
         'matplotlib',
-        'yacs'
+        'Pillow',
+        'torch',
+        'torchvision',
+        'yacs',
+        'cython',
+        'pycocotools',
+        'nuscenes-devkit'
     ]
 )

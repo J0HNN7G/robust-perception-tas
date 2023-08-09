@@ -16,6 +16,7 @@ from contextlib import redirect_stdout
 # object detection
 import numpy as np
 import torch
+import torchvision.transforms as T
 
 # training
 from aprtf.config import cfg
@@ -23,7 +24,7 @@ from aprtf.models import ModelBuilder
 from aprtf.dataset import PedestrianDetectionDataset, get_transform
 from aprtf.references.engine import train_one_epoch, evaluate
 from aprtf.references.utils import collate_fn
-from aprtf.visuals import visualize_results
+from aprtf.visuals import visualize_results, FIG_NUM_IMAGES
 
 # constants
 TRAIN_NAME = 'train'
@@ -45,6 +46,68 @@ VAL_HEADERS = [VAL_AP_NAME, VAL_AR_NAME]
 SEP = '\t'
 
 
+def setup_previous_history(history, cfg):
+    # catch up on history
+    with open(cfg.MODEL.history, 'r') as f:
+        lines = f.readlines()
+        # update headers
+        cfg.MODEL.history_headers = lines[0].split(SEP)
+        # keep track of best epoch
+        val_ap_idx = cfg.MODEL.history_headers.index(VAL_AP_NAME)
+        for row in f.readlines()[1:]:
+            vals = row.split(SEP)
+            row_val_ap = float(vals[val_ap_idx])
+            if history[BEST_AP_NAME] < row_val_ap:
+                epoch_idx = cfg.MODEL.history_headers.index(TRAIN_EPOCH_NAME)
+                history[BEST_EPOCH_NAME] = int(epoch_idx)
+                history[BEST_AP_NAME] = row_val_ap
+
+
+def setup_loss_details(train_log, cfg):
+    loss_names = [loss_name for loss_name in train_log.meters.keys() if 'loss' in loss_name]
+    loss_headers = [TRAIN_NAME + '/' + loss_name for loss_name in loss_names]
+    # check same loss headers if part of partial run
+    if cfg.TRAIN.start_epoch > 0:
+        loss_headers_prev = cfg.MODEL.history_headers[len(TRAIN_HEADERS):-len(VAL_HEADERS)]
+        for i in range(len(cfg.MODEL.history_headers)):
+            assert loss_headers_prev[i] == loss_headers[i], 'Loss headers have changed!'
+    else:
+        cfg.MODEL.history_headers = TRAIN_HEADERS + loss_headers + VAL_HEADERS
+        with open(cfg.MODEL.history, 'w') as f:
+            f.write(SEP.join(cfg.MODEL.history_headers) + '\n')
+    return loss_names, loss_headers
+
+
+def visual_evaluate(model, data_loader, cfg, device):
+    logging.info('Saving visual')
+
+    cpu_device = torch.device("cpu")
+    model.eval()
+    
+    plot_images = []
+    gt_bbs = []
+    dt_bbs = [] 
+    for images, targets in data_loader:
+        # probably wrong way
+        plot_image = T.ToPILImage()(images[0])
+        plot_images.append(plot_image)
+
+        gt_targets = [{k: v for k, v in t.items()} for t in targets]
+        gt_bbs.append(gt_targets[0]['boxes'])
+
+        input_images = [images[0].to(device)]
+        with torch.no_grad():
+            dt_targets = model(input_images)
+            dt_targets = [{k: v.to(cpu_device) for k, v in t.items()} for t in dt_targets]
+            dt_bbs.append(dt_targets[0]['boxes'])
+        del input_images
+
+        if len(plot_images) == FIG_NUM_IMAGES:
+            break
+
+    visualize_results(cfg.VAL.visual, plot_images, gt_bbs, dt_bbs)
+
+
 def checkpoint(model, history, cfg, epoch):
     logging.info('Saving checkpoint')
 
@@ -63,7 +126,7 @@ def checkpoint(model, history, cfg, epoch):
 
     # update history
     with open(cfg.MODEL.history, 'a') as f:
-        stats = SEP.join([str(history[x]) for x in cfg.MODEL.headers]) + '\n'
+        stats = SEP.join([str(history[x]) for x in cfg.MODEL.history_headers]) + '\n'
         f.write(stats)
 
     # delete weights from the previous epoch
@@ -73,10 +136,6 @@ def checkpoint(model, history, cfg, epoch):
         if os.path.exists(prev_weight_file):
             os.remove(prev_weight_file)
             logging.info(f'Previous weights (epoch {prev_epoch}) deleted')
-    
-
-    # save annotation example as reference
-    
 
 
 def main(cfg, device):
@@ -89,7 +148,7 @@ def main(cfg, device):
     dataset = PedestrianDetectionDataset(cfg.DATASET.root_dataset, transforms=get_transform(train=True))
     dataset_val = PedestrianDetectionDataset(cfg.DATASET.root_dataset,transforms=get_transform(train=False))
 
-    # split the dataset in train and test set
+    # split the dataset in train and validation set
     indices = torch.randperm(len(dataset)).tolist()
     dataset = torch.utils.data.Subset(dataset, indices[:-50])
     dataset_val = torch.utils.data.Subset(dataset_val, indices[-50:])
@@ -100,7 +159,7 @@ def main(cfg, device):
         collate_fn=collate_fn)
 
     data_loader_val = torch.utils.data.DataLoader(
-        dataset_val, batch_size=cfg.VAL.batch_size, shuffle=False, num_workers=cfg.TRAIN.num_workers,
+        dataset_val, batch_size=cfg.VAL.batch_size, shuffle=False, num_workers=cfg.VAL.num_workers,
         collate_fn=collate_fn)
 
     # optimizer
@@ -117,26 +176,14 @@ def main(cfg, device):
         BEST_EPOCH_NAME: 0,
         BEST_AP_NAME: -1
     }
-    # store best stats for checkpoints
+    # catch up
     if cfg.TRAIN.start_epoch > 0:
         # catch up on learning rate
         for i in range(0, cfg.TRAIN.start_epoch):
             lr_scheduler.step()
-
         # catch up on history
-        with open(cfg.MODEL.history, 'r') as f:
-            lines = f.readlines()
-            # update headers
-            cfg.MODEL.headers = lines[0].split(SEP)
-            # keep track of best epoch
-            val_ap_idx = cfg.MODEL.headers.index(VAL_AP_NAME)
-            for row in f.readlines()[1:]:
-                vals = row.split(SEP)
-                row_val_ap = float(vals[val_ap_idx])
-                if history[BEST_AP_NAME] < row_val_ap:
-                    epoch_idx = cfg.MODEL.headers.index(TRAIN_EPOCH_NAME)
-                    history[BEST_EPOCH_NAME] = int(epoch_idx)
-                    history[BEST_AP_NAME] = row_val_ap
+        setup_previous_history(history, cfg)
+
     # training
     for epoch in range(cfg.TRAIN.start_epoch, cfg.TRAIN.num_epoch):
         # early stopping
@@ -145,25 +192,15 @@ def main(cfg, device):
             break
         else:
             logging.info(f'Starting Epoch {epoch}')
-
+            
         # train + evaluate
         with redirect_stdout(logging):
             train_log = train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
             eval_log = evaluate(model, data_loader_val, device=device)
-        
+
         # make loss headers in first epoch of run 
         if epoch == cfg.TRAIN.start_epoch:
-            loss_names = [loss_name for loss_name in train_log.meters.keys() if 'loss' in loss_name]
-            loss_headers = [TRAIN_NAME + '/' + loss_name for loss_name in loss_names]
-            # check same loss headers if part of partial run
-            if cfg.TRAIN.start_epoch > 0:
-                loss_headers_prev = cfg.MODEL.headers[len(TRAIN_HEADERS):-len(VAL_HEADERS)]
-                for i in range(len(cfg.MODEL.headers)):
-                    assert loss_headers_prev[i] == loss_header[i], 'Loss headers have changed!'
-            else:
-                cfg.MODEL.headers = TRAIN_HEADERS + loss_headers + VAL_HEADERS
-                with open(cfg.MODEL.history, 'w') as f:
-                    f.write(SEP.join(cfg.MODEL.headers) + '\n')
+            loss_names, loss_headers = setup_loss_details(train_log, cfg)
 
         # update history
         history[TRAIN_EPOCH_NAME] = epoch
@@ -183,8 +220,9 @@ def main(cfg, device):
             history[BEST_EPOCH_NAME] = epoch
             history[BEST_AP_NAME] = history[VAL_AP_NAME]
 
-        # save model + history
-        checkpoint(model, data_loader_val, history, cfg, epoch)
+        # save model + history + visual
+        checkpoint(model, history, cfg, epoch)
+        visual_evaluate(model, data_loader_val, cfg, device=device)
 
         # update learning rate
         lr_scheduler.step()
@@ -229,10 +267,14 @@ if __name__ == '__main__':
 
     # start from checkpoint
     cfg.MODEL.history = os.path.join(cfg.DIR, cfg.MODEL.history_name)
+    cfg.MODEL.weights = ""
     if cfg.TRAIN.start_epoch > 0:
         cfg.MODEL.weights = os.path.join(cfg.DIR, WEIGHT_NAME.format(cfg.TRAIN.start_epoch-1))
         assert os.path.exists(cfg.MODEL.weights), "weight checkpoint does not exist!"
         assert os.path.exists(cfg.MODEL.history), "history checkpoint does not exist!"
+
+    # make visual filepath
+    cfg.VAL.visual = os.path.join(cfg.DIR, cfg.VAL.visual_name)
 
     # setup logger
     log_fp = os.path.join(cfg.DIR, cfg.MODEL.log_name)
@@ -258,7 +300,6 @@ if __name__ == '__main__':
     # train on the GPU or on the CPU, if a GPU is not available
     if torch.cuda.is_available():
         device = torch.device('cuda')
-        torch.cuda.empty_cache()
     else:
         device = torch.device('cpu')
 

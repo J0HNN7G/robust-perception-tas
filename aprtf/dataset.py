@@ -6,8 +6,8 @@ import os
 
 # image
 import numpy as np
-from PIL import Image
 import torch
+from PIL import Image
 
 # bounding boxes
 from torchvision.ops import clip_boxes_to_image, remove_small_boxes
@@ -110,7 +110,7 @@ class PedestrianDetectionDataset2(torch.utils.data.Dataset):
         # clip all boxes to image dims
         bbs = clip_boxes_to_image(bbs, (img.size[1], img.size[0]))
         # remove boxes with too small size
-        #bbs = bbs[remove_small_boxes(bbs, self.bb_min_len)]
+        bbs = bbs[remove_small_boxes(bbs, self.bb_min_len)]
         
         num_objs = len(bbs)
         target = {}

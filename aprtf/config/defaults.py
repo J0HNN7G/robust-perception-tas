@@ -25,18 +25,13 @@ _C.DATASET.num_classes = 2
 _C.MODEL = CN()
 # name of model architecture
 _C.MODEL.arch = "fasterrcnn_resnet50_fpn_v2"
-# filepath to pre-trained weights
-_C.MODEL.weights = ""
-# filepath to history
-_C.MODEL.history_name = ""
 # history name
 _C.MODEL.history_name = "history.tsv"
-# history headers
-_C.MODEL.headers = []
 # log name
 _C.MODEL.log_name = "log.txt"
 # config name
 _C.MODEL.config_name = "config.yaml"
+
 
 # -----------------------------------------------------------------------------
 # Training
@@ -74,16 +69,18 @@ _C.TRAIN.seed = 42
 _C.VAL = CN()
 # currently only supports 1
 _C.VAL.batch_size = 1
+# number of data loading workers
+_C.VAL.num_workers = 4
 # the checkpoint to evaluate on
-_C.VAL.checkpoint = f"best_checkpoint.pth"
+_C.VAL.checkpoint = f"weights_best.pth"
+# visual name
+_C.VAL.visual_name = "visual.png"
 
 # -----------------------------------------------------------------------------
 # Testing
 # -----------------------------------------------------------------------------
 _C.TEST = CN()
-# currently only supports 1
-_C.TEST.batch_size = 1
 # the checkpoint to test on
-_C.TEST.checkpoint = "best_checkpoint.pth"
+_C.TEST.checkpoint = "weights_best.pth"
 # folder to output visualization results
 _C.TEST.result = "./results"

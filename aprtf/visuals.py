@@ -18,6 +18,7 @@ DT_CONFIG = {
 FIG_WIDTH = 20
 FIG_NROWS = 3
 FIG_NCOLS = 3
+FIG_NUM_IMAGES = FIG_NROWS * FIG_NCOLS
 FIG_DPI = 75
 
 # plotting --------------------------------
@@ -98,10 +99,12 @@ def visualize_results(visual_fp, images, gt_bbs, dt_bbs):
     num_visuals = min(len(images), len(fig.axes))
     for i in range(num_visuals):
         draw_results(fig.axes[i], images[i], gt_bbs[i], dt_bbs[i])
+    # clear the rest
     for j in range(num_visuals, len(fig.axes)):
         fig.axes[j].axis('off')
         fig.axes[j].set_aspect('equal')
-
+    
+    # legend
     gt_patch = mpatches.Patch(color=GT_CONFIG['color'], label='GT')
     dt_patch = mpatches.Patch(color=DT_CONFIG['color'], label='DT')
     fig.axes[1].legend(handles = [gt_patch, dt_patch], loc='upper center', fancybox=False, framealpha=1, borderpad=1, edgecolor='black')

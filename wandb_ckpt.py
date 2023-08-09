@@ -7,8 +7,8 @@ from aprtf.config import cfg
 
 # help
 import logging
-
 from train import TRAIN_NAME, VAL_AP_NAME, SEP
+import PIL as Image
 
 # wandb, api key should be give prior to script 
 import wandb
@@ -55,6 +55,10 @@ def main(cfg):
                 if best_val_ap < vals[val_ap_idx]:
                     best_val_ap = vals[val_ap_idx]
     
+    # log visual
+    im_fp = os.path.join(cfg.DIR, cfg.VAL.visual_name)
+    wandb.log({"val/examples": wandb.Image(im_fp)})
+
     run.summary.update({BEST_VAL_NAME : best_val_ap})
     run.finish()
     
@@ -78,6 +82,8 @@ if __name__ == '__main__':
     cfg.merge_from_file(cfg_fp)
 
     # setup logger
+    cfg.MODEL.log = os.path.join(cfg.DIR, cfg.MODEL.log_name)
+    cfg.MODEL.history = os.path.join(cfg.DIR, cfg.MODEL.history_name)
     assert os.path.exists(cfg.MODEL.log), 'logs do not exist!'
     assert os.path.exists(cfg.MODEL.history), 'history does not exist!'
     logging.basicConfig(level=logging.INFO,

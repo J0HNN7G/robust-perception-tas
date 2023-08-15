@@ -1,9 +1,7 @@
-# robust-perception-tas
+# APRTF
 Robustness Testing Framework for Image Models in Autonomous Systems
 
 ##  Create Environment
-
-- Conda
 ```
 conda create -n <env_name>
 conda activate <name>
@@ -19,11 +17,10 @@ pip install yacs cython pycocotools -upgrade-strategy only-if-needed
 
 # aprtf
 cd <robust-perception-tas_directory>
-python setup.py
+python setup.py install
 ```
 
 ## Training
-
 1. Setup dataset.
 ```
 python setupPennFudan.py --dir <dataset_directory>

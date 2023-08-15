@@ -78,8 +78,6 @@ python train.py --cfg config/<config_file>
 4. Results are stored at directory specified by `DIR` in configuration file. By default your directory will be set up as follows:
 ```
 .
-├── build                   # Compiled files (alternatively `dist`)
-├── 
 ├── weights_best.pth        # checkpoint with best validation mAP
 ├── weigths_epoch_<n>.pth   # last checkpoint whilst running
 ├── weights_final.pth       # final checkpoint if run finished

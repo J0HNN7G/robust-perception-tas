@@ -13,7 +13,7 @@ conda install pytorch==2.0.0 torchvision==0.15.0 pytorch-cuda=11.7 -c pytorch -c
 conda install numpy matplotlib Pillow
 
 # config and metrics (not on conda)
-pip install yacs cython pycocotools -upgrade-strategy only-if-needed
+pip install yacs cython pycocotools --upgrade-strategy only-if-needed
 
 # aprtf
 cd <robust-perception-tas_directory>
@@ -21,9 +21,9 @@ python setup.py install
 ```
 
 ## Training
-1. Setup dataset.
+1. Setup pedestrian detection dataset.
 ```
-python setupPennFudan.py --dir <dataset_directory>
+python data/setupPennFudan.py
 ```
 Custom dataset files are expected to be formatted as follows:
 ```

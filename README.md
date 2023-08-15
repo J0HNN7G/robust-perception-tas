@@ -1,7 +1,7 @@
 # APRTF
 Robustness Testing Framework for Image Models in Autonomous Systems
 
-##  Create Environment
+##  Installation
 ```
 conda create -n <env_name>
 conda activate <name>
@@ -20,7 +20,7 @@ cd <robust-perception-tas_directory>
 python setup.py install
 ```
 
-## Training
+## Pedestrian Detection Finetuning
 1. Setup pedestrian detection dataset.
 ```
 python data/setupPennFudan.py

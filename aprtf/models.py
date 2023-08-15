@@ -5,10 +5,9 @@ import math
 import torch
 
 # architectures
-from torchvision.models.detection import retinanet_resnet50_fpn_v2, fasterrcnn_resnet50_fpn_v2, maskrcnn_resnet50_fpn_v2 
-from torchvision.models.detection import FasterRCNN_ResNet50_FPN_V2_Weights, RetinaNet_ResNet50_FPN_V2_Weights, MaskRCNN_ResNet50_FPN_V2_Weights
+from torchvision.models.detection import retinanet_resnet50_fpn_v2, fasterrcnn_resnet50_fpn_v2 
+from torchvision.models.detection import FasterRCNN_ResNet50_FPN_V2_Weights, RetinaNet_ResNet50_FPN_V2_Weights
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torchvision.models.detection.retinanet import RetinaNetClassificationHead
 
 class ModelBuilder:
 

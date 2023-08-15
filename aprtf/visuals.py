@@ -21,6 +21,7 @@ FIG_NCOLS = 3
 FIG_NUM_IMAGES = FIG_NROWS * FIG_NCOLS
 FIG_DPI = 75
 
+
 # plotting --------------------------------
 
 def bb2plot(bb):

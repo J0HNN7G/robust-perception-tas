@@ -8,7 +8,7 @@ from yacs.config import CfgNode as CN
 # -----------------------------------------------------------------------------
 
 _C = CN()
-_C.DIR = "ckpt/fasterrcnn_resnet50_fpn_v2-pennfudan"
+_C.DIR = "ckpt/fasterrcnn_resnet50_fpn-pennfudan"
 
 # -----------------------------------------------------------------------------
 # Dataset
@@ -26,7 +26,7 @@ _C.DATASET.image_max_size = 720
 # -----------------------------------------------------------------------------
 _C.MODEL = CN()
 # name of model architecture
-_C.MODEL.arch = "fasterrcnn_resnet50_fpn_v2"
+_C.MODEL.arch = "fasterrcnn_resnet50_fpn"
 # history name
 _C.MODEL.history_name = "history.tsv"
 # log name
@@ -38,7 +38,7 @@ _C.MODEL.config_name = "config.yaml"
 # Training
 # -----------------------------------------------------------------------------
 _C.TRAIN = CN()
-_C.TRAIN.batch_size = 2
+_C.TRAIN.batch_size = 32
 # epochs to train for
 _C.TRAIN.num_epoch = 10
 # epoch to start training. useful if continue from a checkpoint
@@ -58,9 +58,9 @@ _C.TRAIN.weight_decay = 0.0005
 # number of data loading workers
 _C.TRAIN.num_workers = 4
 # early stopping if no improvements in this many epochs
-_C.TRAIN.early_stop = 1
+_C.TRAIN.early_stop = 2
 # frequency to display
-_C.TRAIN.disp_iter = 10
+_C.TRAIN.disp_iter = 20
 # manual seed
 _C.TRAIN.seed = 42
 

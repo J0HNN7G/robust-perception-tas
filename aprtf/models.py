@@ -1,10 +1,10 @@
 # code altered from MIT semantic segmentation repository
 # https://github.com/CSAILVision/semantic-segmentation-pytorch
 
+import math
 import torch
 
 # architectures
-import torchvision
 from torchvision.models.detection import retinanet_resnet50_fpn_v2, fasterrcnn_resnet50_fpn_v2, maskrcnn_resnet50_fpn_v2 
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_V2_Weights, RetinaNet_ResNet50_FPN_V2_Weights, MaskRCNN_ResNet50_FPN_V2_Weights
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
@@ -23,7 +23,7 @@ class ModelBuilder:
                 detector = fasterrcnn_resnet50_fpn_v2(weights=FasterRCNN_ResNet50_FPN_V2_Weights) 
             # replace the pre-trained head with a new one
             in_features = detector.roi_heads.box_predictor.cls_score.in_features
-            detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)    
+            detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
         elif arch == 'retinanet_resnet50_fpn':
             if pretrained:
                 detector = retinanet_resnet50_fpn_v2(weights=None)  
@@ -32,20 +32,13 @@ class ModelBuilder:
             # replace the pre-trained head with a new one
             in_features = detector.head.classification_head.cls_logits.in_channels
             num_anchors = detector.head.classification_head.num_anchors
-            detector.head.classification_head = RetinaNetClassificationHead(in_features, num_classes, num_anchors)
-        elif arch == 'maskrcnn_resnet50_fpn':
-                if pretrained:
-                    model = maskrcnn_resnet50_fpn_v2(weights=None)
-                else:
-                    model = maskrcnn_resnet50_fpn_v2(weights=MaskRCNN_ResNet50_FPN_V2_Weights.DEFAULT)
-                # replace the class head with a new one matching num classes
-                in_features = model.roi_heads.box_predictor.cls_score.in_features
-                model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-                # replace the mask head with a new one matching num classes
-                in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
-                hidden_layer = 256
-                model.roi_heads.mask_predictor = torchvision.models.detection.mask_rcnn.MaskRCNNPredictor(in_features_mask, hidden_layer, num_classes)
-                detector = model
+
+            detector.head.classification_head.num_classes = num_classes
+            # only cls logits at end depends on class size
+            cls_logits = torch.nn.Conv2d(in_features, num_anchors * num_classes, kernel_size = 3, stride=1, padding=1)
+            torch.nn.init.normal_(cls_logits.weight, std=0.01)  # as per pytorch code
+            torch.nn.init.constant_(cls_logits.bias, -math.log((1 - 0.01) / 0.01))  # as per pytorcch code
+            detector.head.classification_head.cls_logits = cls_logits
         else:
             raise Exception('Architecture undefined!')
 

@@ -18,6 +18,8 @@ _C.DATASET.root_dataset = "data/sets/PennFudanPed"
 _C.DATASET.list_train = "data/sets/PennFudanPed"
 _C.DATASET.list_val = "data/sets/PennFudanPed"
 _C.DATASET.num_classes = 2
+# maximum length along any dimension
+_C.DATASET.image_max_size = 720
 
 # -----------------------------------------------------------------------------
 # Model
@@ -31,7 +33,6 @@ _C.MODEL.history_name = "history.tsv"
 _C.MODEL.log_name = "log.txt"
 # config name
 _C.MODEL.config_name = "config.yaml"
-
 
 # -----------------------------------------------------------------------------
 # Training
@@ -62,6 +63,7 @@ _C.TRAIN.early_stop = 1
 _C.TRAIN.disp_iter = 10
 # manual seed
 _C.TRAIN.seed = 42
+
 
 # -----------------------------------------------------------------------------
 # Validation

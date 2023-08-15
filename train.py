@@ -3,28 +3,26 @@
 # code altered from MIT semantic segmentation repository
 # https://github.com/CSAILVision/semantic-segmentation-pytorch
 
-# - make wandb compatible (log training)
-# - replace with nuscenes dataset (make the switch)
-
 # system libs
 import os
-import random
 import argparse
+
+# logging
 import logging
 from contextlib import redirect_stdout
 
 # object detection
-import numpy as np
 import torch
-import torchvision.transforms as T
+from torchvision.transforms import ToPILImage
 
 # training
 from aprtf.config import cfg
 from aprtf.models import ModelBuilder
-from aprtf.dataset import PedestrianDetectionDataset, get_transform
+from aprtf.dataset import PedestrianDetectionDataset,  get_transform
 from aprtf.references.engine import train_one_epoch, evaluate
 from aprtf.references.utils import collate_fn
 from aprtf.visuals import visualize_results, FIG_NUM_IMAGES
+
 
 # constants
 TRAIN_NAME = 'train'
@@ -89,7 +87,7 @@ def visual_evaluate(model, data_loader, cfg, device):
     dt_bbs = [] 
     for images, targets in data_loader:
         # probably wrong way
-        plot_image = T.ToPILImage()(images[0])
+        plot_image = ToPILImage()(images[0])
         plot_images.append(plot_image)
 
         gt_targets = [{k: v for k, v in t.items()} for t in targets]
@@ -144,20 +142,16 @@ def main(cfg, device):
                                         weights=cfg.MODEL.weights)
     model.to(device)
 
-    # Dataset and Loader
-    dataset = PedestrianDetectionDataset(cfg.DATASET.root_dataset, transforms=get_transform(train=True))
-    dataset_val = PedestrianDetectionDataset(cfg.DATASET.root_dataset,transforms=get_transform(train=False))
+    # dataset
+    dataset = PedestrianDetectionDataset(cfg.DATASET.list_train, 
+                                         transforms=get_transform(True, cfg.DATASET.image_max_size))
+    dataset_val = PedestrianDetectionDataset(cfg.DATASET.list_val,
+                                             transforms=get_transform(False, cfg.DATASET.image_max_size))
 
-    # split the dataset in train and validation set
-    indices = torch.randperm(len(dataset)).tolist()
-    dataset = torch.utils.data.Subset(dataset, indices[:-50])
-    dataset_val = torch.utils.data.Subset(dataset_val, indices[-50:])
-
-    # define training and validation data loaders
+    # dataloaders
     data_loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg.TRAIN.batch_size, shuffle=True, num_workers=cfg.TRAIN.num_workers,
         collate_fn=collate_fn)
-
     data_loader_val = torch.utils.data.DataLoader(
         dataset_val, batch_size=cfg.VAL.batch_size, shuffle=False, num_workers=cfg.VAL.num_workers,
         collate_fn=collate_fn)
@@ -187,7 +181,7 @@ def main(cfg, device):
     # training
     for epoch in range(cfg.TRAIN.start_epoch, cfg.TRAIN.num_epoch):
         # early stopping
-        if cfg.TRAIN.early_stop <= history[BEST_EPOCH_NAME] - epoch:
+        if cfg.TRAIN.early_stop < epoch - history[BEST_EPOCH_NAME]:
             logging.info(f'Early stop! No improvement in validation set for {cfg.TRAIN.early_stop} epochs')
             break
         else:
@@ -236,7 +230,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--cfg",
-        default="config/fasterrcnn_resnet50_fpn-pennfudan.yaml",
+        default="config/retinanet_resnet50_fpn-pennfudan.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,
@@ -293,8 +287,6 @@ if __name__ == '__main__':
     logging.info("Outputting to: {}".format(cfg.DIR))
 
     # random seed
-    random.seed(cfg.TRAIN.seed)
-    np.random.seed(cfg.TRAIN.seed)
     torch.manual_seed(cfg.TRAIN.seed)
 
     # train on the GPU or on the CPU, if a GPU is not available

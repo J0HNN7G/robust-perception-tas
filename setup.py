@@ -18,8 +18,8 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ),
     install_requires=[
-        'torch==2.0.0',
-        'torchvision==0.15.0',
+        'torch',
+        'torchvision',
         'numpy',
         'matplotlib',
         'Pillow',

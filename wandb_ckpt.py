@@ -8,7 +8,6 @@ from aprtf.config import cfg
 # help
 import logging
 from train import TRAIN_NAME, VAL_AP_NAME, SEP
-import PIL as Image
 
 # wandb, api key should be give prior to script 
 import wandb

@@ -1,7 +1,9 @@
 # robust-perception-tas
 Robustness Testing Framework for Image Models in Autonomous Systems
 
-##  Create Conda Environment
+##  Create Environment
+
+- Conda
 ```
 conda create -n <env_name>
 conda activate <name>
@@ -16,12 +18,17 @@ conda install numpy matplotlib Pillow
 pip install yacs cython pycocotools -upgrade-strategy only-if-needed
 ```
 
+## Install APRTF package
+```
+
+python setup.py
+```
+
 ## Training
 
 1. Setup dataset.
 ```
-cd <robust-perception-tas_directory>
-python setupPennFudan.py
+python setupPennFudan.py --dir <dataset_directory>
 ```
 Custom dataset files are expected to be formatted as follows:
 ```
@@ -77,7 +84,7 @@ python train.py --cfg config/<config_file>
 
 4. Results are stored at directory specified by `DIR` in configuration file. By default your directory will be set up as follows:
 ```
-.
+<DIR>
 ├── weights_best.pth        # checkpoint with best validation mAP
 ├── weigths_epoch_<n>.pth   # last checkpoint whilst running
 ├── weights_final.pth       # final checkpoint if run finished

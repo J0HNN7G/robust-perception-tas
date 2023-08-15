@@ -16,11 +16,9 @@ conda install numpy matplotlib Pillow
 
 # config and metrics (not on conda)
 pip install yacs cython pycocotools -upgrade-strategy only-if-needed
-```
 
-## Install APRTF package
-```
-
+# aprtf
+cd <robust-perception-tas_directory>
 python setup.py
 ```
 

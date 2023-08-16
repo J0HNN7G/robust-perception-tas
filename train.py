@@ -15,6 +15,10 @@ from contextlib import redirect_stdout
 import torch
 from torchvision.transforms import ToPILImage
 
+# seeding randomness
+import random
+import numpy as np
+
 # training
 from aprtf.config import cfg
 from aprtf.models import ModelBuilder
@@ -183,15 +187,19 @@ def main(cfg, device):
         # early stopping
         if cfg.TRAIN.early_stop < epoch - history[BEST_EPOCH_NAME]:
             logging.info(f'Early stop! No improvement in validation set for {cfg.TRAIN.early_stop} epochs')
+            # rename checkpoint to final weights
+            curr_weights_fp = os.path.join(cfg.DIR, WEIGHT_NAME.format(epoch-1))
+            final_weights_fp = os.path.join(cfg.DIR, WEIGHT_FINAL_NAME)
+            os.rename(curr_weights_fp, final_weights_fp)
             break
         else:
             logging.info(f'Starting Epoch {epoch}')
             
         # train + evaluate
         with redirect_stdout(logging):
-            train_log = train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
+            train_log = train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=cfg.TRAIN.disp_iter)
             eval_log = evaluate(model, data_loader_val, device=device)
-
+        
         # make loss headers in first epoch of run 
         if epoch == cfg.TRAIN.start_epoch:
             loss_names, loss_headers = setup_loss_details(train_log, cfg)
@@ -245,6 +253,12 @@ if __name__ == '__main__':
     cfg.merge_from_file(args.cfg)
     cfg.merge_from_list(args.opts)
 
+    # check if already done
+    final_weight_fp = os.path.join(cfg.DIR, WEIGHT_FINAL_NAME)
+    if os.path.exists(final_weight_fp):
+        print(f'Training was done already! Final weights: {final_weight_fp}')
+        exit()
+
     # make output directory
     if not os.path.isdir(cfg.DIR):
         os.makedirs(cfg.DIR)
@@ -252,6 +266,17 @@ if __name__ == '__main__':
         # starting from scratch
         for f in os.listdir(cfg.DIR):
             os.remove(os.path.join(cfg.DIR,f))
+
+    # set/save random seed
+    if len(cfg.TRAIN.seed) == 0: 
+        seed = torch.seed()
+        cfg.TRAIN.seed = int(seed)
+    else:
+        cfg.TRAIN.SEED = int(cfg.TRAIN.seed)
+        torch.manual_seed(cfg.TRAIN.seed)
+    random.seed(cfg.TRAIN.seed) 
+    # seed must be between 0 and 2**32 -1
+    np.random.seed(cfg.TRAIN.seed % (2**32 - 1))
 
     # make config 
     config_fp = os.path.join(cfg.DIR, cfg.MODEL.config_name)
@@ -280,19 +305,26 @@ if __name__ == '__main__':
                         handlers=[logging.FileHandler(log_fp)])
     # for redirecting stdout
     logging.write = lambda msg: logging.info(msg) if msg != '\n' else None
-
     # log details
     logging.info("Loaded configuration file: {}".format(args.cfg))
     logging.info("Running with config:\n{}".format(cfg))
     logging.info("Outputting to: {}".format(cfg.DIR))
 
-    # random seed
-    torch.manual_seed(cfg.TRAIN.seed)
-
     # train on the GPU or on the CPU, if a GPU is not available
     if torch.cuda.is_available():
         device = torch.device('cuda')
     else:
+        logging.info('No GPU found! Training on CPU')
         device = torch.device('cpu')
 
-    main(cfg, device)
+    try:
+        main(cfg, device)
+    except Exception as e:
+        # document everything
+        print('LOGS:')
+        with open(log_fp, 'r') as f:
+            print(f.read())
+        print('EXCEPTION:')
+        print(e)
+
+

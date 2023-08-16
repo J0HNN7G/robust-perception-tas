@@ -6,7 +6,7 @@ DATASET:
   image_max_size: 720
 
 MODEL:
-  arch: "fasterrcnn_resnet50_fpn"
+  arch: "retinanet_resnet50_fpn"
 
 TRAIN:
   batch_size: 32
@@ -21,7 +21,7 @@ TRAIN:
   early_stop: 2
   num_workers: 4
   disp_iter: 10
-  seed: 42
+  seed: ''
 
 VAL:
   batch_size: 1
@@ -31,4 +31,4 @@ TEST:
   checkpoint: "weights_best.pth"
   result: "./results"
 
-DIR: "ckpt/fasterrcnn_resnet50_fpn-pennfudan"
+DIR: "ckpt/retinanet_resnet50_fpn-pennfudanped"

@@ -1,9 +1,13 @@
 ### Personal ###
+# data
 data/sets/*
+# checkpoints
 ckpt/*
+# slurm
+slurm/experiment*
+# wandb
 wandb/*
 !wandb/wandb_ckpt.py
-
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,visualstudiocode

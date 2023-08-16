@@ -62,7 +62,7 @@ _C.TRAIN.early_stop = 2
 # frequency to display
 _C.TRAIN.disp_iter = 20
 # manual seed
-_C.TRAIN.seed = 42
+_C.TRAIN.seed = ''
 
 
 # -----------------------------------------------------------------------------

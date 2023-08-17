@@ -5,6 +5,7 @@
 
 # system libs
 import os
+import sys
 import argparse
 
 # logging
@@ -321,10 +322,11 @@ if __name__ == '__main__':
         main(cfg, device)
     except Exception as e:
         # document everything
-        print('LOGS:')
         with open(log_fp, 'r') as f:
             print(f.read())
-        print('EXCEPTION:')
         print(e)
+        # for bash script
+        sys.exit(1)
+    sys.exit(0)
 
 

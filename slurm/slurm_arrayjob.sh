@@ -147,9 +147,11 @@ rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 experiment_text_file=$1
 COMMAND="`sed \"${SLURM_ARRAY_TASK_ID}q;d\" ${experiment_text_file}`"
 echo "Running provided command: ${COMMAND}"
-eval "${COMMAND}"
-echo "Command ran successfully!"
-
+if eval "${COMMAND}"; then
+    echo "Command ran successfully!"
+else
+    echo "Command failed!"
+fi
 
 # ======================================
 # Move output data from scratch to DFS
@@ -170,6 +172,6 @@ rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 # =========================
 echo ""
 echo "============"
-echo "job finished successfully"
+echo "Job finished successfully!"
 dt=$(date '+%d/%m/%Y %H:%M:%S')
 echo "Job finished: $dt"

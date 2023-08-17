@@ -12,10 +12,9 @@ from PIL import Image
 from aprtf.references import transforms as T
 
 
-def get_transform(train, image_max_size):
+def get_transform(train):
     transforms = []
     transforms.append(T.PILToTensor())
-    transforms.append(T.MaxSize(image_max_size))
     transforms.append(T.ConvertImageDtype(torch.float))
     if train:
         transforms.append(T.RandomHorizontalFlip(0.5))
@@ -32,7 +31,6 @@ class PedestrianDetectionDataset(torch.utils.data.Dataset):
             raise ValueError('Undefined parse for ODGT type!')
         
         self.transforms = transforms
-
 
     def __getitem__(self, idx):
         # image

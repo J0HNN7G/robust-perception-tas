@@ -19,6 +19,20 @@
 # run_experiment -b slurm_arrayjob.sh -e experiments.txt -m 12
 # ```
 
+# constants
+CONDA_ENV_NAME=tas
+
+USER_HOME=/home/${USER}
+SCRATCH_DISK=/disk/scratch
+SCRATCH_HOME=${SCRATCH_DISK}/${USER}
+
+PROJECT=git/robust-perception-tas
+HOME_PROJECT=${USER_HOME}/${PROJECT}
+SCRATCH_PROJECT=${SCRATCH_HOME}/${PROJECT}
+
+INPUT_DIR=data/sets
+OUTPUT_DIR=ckpt
+
 
 # ====================
 # Options for sbatch
@@ -84,12 +98,9 @@ set -e
 # N.B. disk could be at /disk/scratch_big, or /disk/scratch_fast. Check
 # yourself using an interactive session, or check the docs:
 #     http://computing.help.inf.ed.ac.uk/cluster-computing
-SCRATCH_DISK=/disk/scratch
-SCRATCH_HOME=${SCRATCH_DISK}/${USER}
 mkdir -p ${SCRATCH_HOME}
 
 # Activate your conda environment
-CONDA_ENV_NAME=tas
 echo "Activating conda environment: ${CONDA_ENV_NAME}"
 conda activate ${CONDA_ENV_NAME}
 
@@ -114,14 +125,11 @@ conda activate ${CONDA_ENV_NAME}
 echo "Moving input data to the compute node's scratch space: $SCRATCH_DISK"
 
 # input data directory path on the DFS
-USER_HOME=/home/${USER}
-PROJECT=robust-perception-tas
-INPUT_DIR=data/sets
-src_path=${USER_HOME}/${PROJECT}/${INPUT_DIR}
+src_path=${HOME_PROJECT}/${INPUT_DIR}
 
 
 # input data directory path on the scratch disk of the node
-dest_path=${SCRATCH_HOME}/${PROJECT}/${INPUT_DIR}
+dest_path=${SCRATCH_PROJECT}/${INPUT_DIR}
 mkdir -p ${dest_path}  # make it if required
 
 # Important notes about rsync:
@@ -161,9 +169,8 @@ fi
 
 echo "Moving output data back to DFS"
 
-OUTPUT_DIR=ckpt
-src_path=${SCRATCH_HOME}/${PROJECT}/${OUTPUT_DIR}
-dest_path=${USER_HOME}/${PROJECT}/${OUTPUT_DIR}
+src_path=${SCRATCH_PROJECT}/${OUTPUT_DIR}
+dest_path=${HOME_PROJECT}/${OUTPUT_DIR}
 rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 
 

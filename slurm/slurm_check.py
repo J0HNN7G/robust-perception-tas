@@ -1,19 +1,23 @@
-
 import os
 import argparse
 
-
 # constants
 USER = 's1915791'
-SLURM_LOG_DIR = os.path.join(USER, 'home', 'slurm_logs')
+USER_HOME = os.path.join('home', USER)
+PROJECT = 'git/robust-perception-tas'
+PROJECT_PATH = os.path.join(USER_HOME, PROJECT)
+SLURM_PATH = os.path.join(PROJECT_PATH, 'slurm') 
+INPUT_PATH = os.path.join(PROJECT_PATH, 'data/sets')
+OUTPUT_TXT = os.path.join(SLURM_PATH, "experiment.txt")
+OUTPUT_TSV = os.path.join(SLURM_PATH, 'experiment.tsv')
+
 FAILED_TSV_NAME = 'failed_experiments.tsv'
 TIMEOUT_TSV_NAME = 'timeout_experiments.tsv'
 
-
 TRANSFER_TO_PREFIX = "Moving input data to the compute node's scratch space: "
 RUNNING_PREFIX = 'Running provided command: '
-TRANSFER_FROM_PROMPT = "Moving output data back to DFS"
 FAILED_PROMPT = 'Command failed!'
+TRANSFER_FROM_PROMPT = "Moving output data back to DFS"
 FINISHED_PROMPT = 'Job finished successfully!'
 TIMEOUT_PROMPT = 'CANCELLED'
 
@@ -35,7 +39,7 @@ def main(args):
 
     # look at status of each experiment
     for id, line in enumerate(lines, start=1):
-        slurm_log_fp = os.path.join(SLURM_LOG_DIR, f'slurm-{args.job}_{id}.out') 
+        slurm_log_fp = os.path.join(args.log, f'slurm-{args.job}_{id}.out') 
         if not os.path.exists(slurm_log_fp):
             queuing_ids.append(id)
             continue
@@ -137,28 +141,37 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--job",
-        default=None,
-        metavar="STR",
+        required=True,
+        metavar="INT",
+        help="Slurm Job ID",
+        type=int,
+    )
+    parser.add_argument(
+        "--log",
+        default=SLURM_PATH,
+        metavar="PATH",
         help="Slurm Job ID",
         type=str,
     )
     parser.add_argument(
         "--exp_txt",
-        default='slurm/experiments.txt',
-        metavar="STR",
+        default=OUTPUT_TXT,
+        metavar="PATH",
         help="Experiments text file",
         type=str,
     )
     parser.add_argument(
         "--exp_tsv",
-        default='slurm/experiments.tsv',
-        metavar="STR",
+        default=OUTPUT_TSV,
+        metavar="PATH",
         help="Experiments TSV",
         type=str,
     )
     args = parser.parse_args()
-    if args.job is None:
-        raise ValueError('No Job ID provided!')
+    if args.job < 1:
+        raise ValueError('Job ID is not positive!')
+    if not os.path.exists(args.log):
+        raise FileNotFoundError('Slurm logs not found!') 
     if not os.path.exists(args.exp_txt):
         raise FileNotFoundError('Experiments text file not found!') 
     if not os.path.exists(args.exp_tsv):

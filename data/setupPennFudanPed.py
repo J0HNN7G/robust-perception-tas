@@ -85,15 +85,15 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--dir",
-        default="data/sets/",
-        metavar="DIRECTORY",
-        help="path to intended dataset directory",
+        required=True,
+        metavar="PATH",
+        help="absolute path to intended dataset directory",
         type=str,
     )
     parser.add_argument(
         "--tfrac",
         default=0.8,
-        metavar="VALUE",
+        metavar="FLOAT",
         help="fraction of samples to put in training set vs validation set",
         type=float,
     )

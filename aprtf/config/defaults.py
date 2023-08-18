@@ -15,8 +15,6 @@ _C = CN()
 _C.DATASET = CN()
 # absolute path to dataset folder
 _C.DATASET.path = ""
-# number of object classes
-_C.DATASET.num_classes = 2
 
 _C.DATASET.LIST = CN()
 # training list ODGT
@@ -39,7 +37,7 @@ _C.TRAIN = CN()
 # absolute path to training checkpoint folder
 _C.TRAIN.path = ""
 # manual seed
-_C.TRAIN.seed = ""
+_C.TRAIN.seed = -1
 
 _C.TRAIN.DATA = CN()
 # training batch size

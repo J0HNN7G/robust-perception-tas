@@ -1,6 +1,5 @@
 DATASET:
   path: ""
-  num_classes: 2
   LIST:
     train: "train_PennFudanPed.odgt"
     val: "val_PennFudanPed.odgt"

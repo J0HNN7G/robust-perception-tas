@@ -3,13 +3,12 @@ import os
 import json
 import argparse
 
-# download
-import requests
-import zipfile
-
 # boxes
 from PIL import Image
 import numpy as np
+
+# progress bar
+from tqdm import tqdm
 
 # constants
 TRAIN_NAME = 'train'
@@ -18,33 +17,10 @@ ODGT_NAME = 'PennFudanPed.odgt'
 IMG_DIR_NAME = "PNGImages"
 MASK_DIR_NAME = "PedMasks"
 DATASET_NAME = 'PennFudanPed'
-DATASET_URL = 'https://www.cis.upenn.edu/~jshi/ped_html/PennFudanPed.zip'
-
-
-def download_and_unzip(url, target_directory):
-    # Ensure the target directory exists, if not, create it
-    if not os.path.exists(target_directory):
-        os.makedirs(target_directory)
-    
-    # Get the filename from the URL
-    filename = url.split('/')[-1]
-
-    # Download the zip file from the URL
-    response = requests.get(url)
-    zip_path = os.path.join(target_directory, filename)
-    with open(zip_path, 'wb') as zip_file:
-        zip_file.write(response.content)
-
-    # Unzip the downloaded file
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(target_directory)
-
-    # Remove the downloaded zip file
-    os.remove(zip_path)
 
 
 def indices2odgt(odgt_fp, dir_p, indices, img_fps, mask_fps):
-    for idx in indices:
+    for idx in tqdm(indices):
         mask_path = os.path.join(dir_p, MASK_DIR_NAME, mask_fps[idx]) 
         mask = Image.open(mask_path)
 
@@ -87,7 +63,7 @@ if __name__ == '__main__':
         "--dir",
         required=True,
         metavar="PATH",
-        help="absolute path to intended dataset directory",
+        help="absolute path to intended PennFudan dataset directory",
         type=str,
     )
     parser.add_argument(
@@ -98,11 +74,10 @@ if __name__ == '__main__':
         type=float,
     )
     args = parser.parse_args()
-
-
-    print(f'Downloading Penn-Fudan Pedestrian Dataset')
-    download_and_unzip(DATASET_URL, args.dir)
-
+    if not os.path.exists(args.dir):
+        raise ValueError('Cannot find data directory')
+    if not 0 <= args.tfrac <= 1:
+        raise ValueError('train fraction out of range [0,1]!')
 
     print(f'Starting odgt file creation')
     dataset_dir_p = os.path.join(args.dir, DATASET_NAME)
@@ -113,11 +88,13 @@ if __name__ == '__main__':
     indices = np.random.permutation(len(img_fps)).tolist()
     limit = int(len(img_fps) * args.tfrac) 
 
+    print(f'Train indexing')
     odgt_fp_train = os.path.join(dataset_dir_p, f'{TRAIN_NAME}_{ODGT_NAME}')
     open(odgt_fp_train, 'w').close() 
     indices2odgt(odgt_fp_train, dataset_dir_p, indices[:limit], img_fps, mask_fps)
-    print(f'Train file saved at: {odgt_fp_train}')
+    print(f'Train file saved at: {odgt_fp_train}\n')
 
+    print(f'Validation indexing')
     odgt_fp_val = os.path.join(dataset_dir_p, f'{VAL_NAME}_{ODGT_NAME}')
     open(odgt_fp_val, 'w').close() 
     indices2odgt(odgt_fp_val, dataset_dir_p, indices[limit:], img_fps, mask_fps)

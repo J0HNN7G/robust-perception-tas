@@ -4,7 +4,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='Autonomous Perception Robustness Testing Framework',
+    name='aprtf',
     version='1.0.0',
     author='Jonathan Gustafsson Frennert',
     description='Robustness Testing for Image Models in Autonomous Systems',

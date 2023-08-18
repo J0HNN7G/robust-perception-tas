@@ -35,8 +35,8 @@ TRAIN_NAME = 'train'
 VAL_NAME = 'val'
 TRAIN_EPOCH_NAME = f'{TRAIN_NAME}/epoch'
 TRAIN_LR_NAME = f'{TRAIN_NAME}/lr_last_iter'
-VAL_AP_NAME = f'{VAL_NAME}/mAP_0.5:0.95:0.05'
-VAL_AR_NAME = f'{VAL_NAME}/mAR_0.5:0.95:0.05'
+VAL_AP_NAME = f'{VAL_NAME}/AP_0.5:0.95:0.05'
+VAL_AR_NAME = f'{VAL_NAME}/AR_0.5:0.95:0.05'
 
 BEST_EPOCH_NAME = 'best_' + TRAIN_EPOCH_NAME
 BEST_AP_NAME = 'best_' + VAL_AP_NAME
@@ -144,16 +144,14 @@ def checkpoint(model, history, cfg, epoch):
 
 def main(cfg, device):
     # model
-    model = ModelBuilder.build_detector(args=cfg.MODEL,
-                                        num_classes=cfg.DATASET.num_classes,
-                                        weights=cfg.TRAIN.weights)
+    model = ModelBuilder.build_detector(args=cfg.MODEL, weights=cfg.TRAIN.weights)
     model.to(device)
 
     # dataset
     train_path = os.path.join(cfg.DATASET.path,cfg.DATASET.LIST.train)
-    train_dataset = PedestrianDetectionDataset(train_path, transforms=get_transform(True))
+    train_dataset = PedestrianDetectionDataset(train_path, transforms=get_transform(train=True))
     val_path = os.path.join(cfg.DATASET.path,cfg.DATASET.LIST.val)
-    val_dataset = PedestrianDetectionDataset(val_path, transforms=get_transform(False))
+    val_dataset = PedestrianDetectionDataset(val_path, transforms=get_transform(train=False))
 
     # dataloaders
     train_data_loader = torch.utils.data.DataLoader(
@@ -235,21 +233,21 @@ if __name__ == '__main__':
         description="PyTorch Pedestrian Detection Finetuning"
     )
     parser.add_argument(
-        "-c",
+        "-c", "--config",
         required=True,
         metavar="FILENAME",
         help="absolute path to config file",
         type=str,
     )
     parser.add_argument(
-        "-i",
+        "-i", "--input",
         required=True,
         metavar="PATH",
         help="absolute path to directory with train and validation lists",
         type=str,
     )
     parser.add_argument(
-        "-o",
+        "-o", "--output",
         required=True,
         metavar="PATH",
         help="absolute path to checkpoint directory",
@@ -262,10 +260,10 @@ if __name__ == '__main__':
         nargs=argparse.REMAINDER,
     )
     args = parser.parse_args()
-    cfg.merge_from_file(args.c)
+    cfg.merge_from_file(args.config)
     cfg.merge_from_list(args.opts)
-    cfg.DATASET.path = args.i
-    cfg.TRAIN.path = args.o
+    cfg.DATASET.path = args.input
+    cfg.TRAIN.path = args.output
 
     # check if already done
     final_weight_fp = os.path.join(cfg.TRAIN.path, WEIGHT_FINAL_FN)
@@ -282,7 +280,7 @@ if __name__ == '__main__':
             os.remove(os.path.join(cfg.TRAIN.path,f))
 
     # set/save random seed
-    if len(cfg.TRAIN.seed) == 0: 
+    if cfg.TRAIN.seed < 0: 
         seed = torch.seed()
         cfg.TRAIN.seed = int(seed)
     else:
@@ -309,7 +307,7 @@ if __name__ == '__main__':
     # for redirecting stdout
     logging.write = lambda msg: logging.info(msg) if msg != '\n' else None
     # log details
-    logging.info("Loaded configuration file: {}".format(args.c))
+    logging.info("Loaded configuration file: {}".format(args.config))
     logging.info("Running with config:\n{}".format(cfg))
     logging.info("Outputting to: {}".format(cfg.TRAIN.path))
 

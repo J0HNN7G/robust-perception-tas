@@ -22,16 +22,20 @@
 # constants
 CONDA_ENV_NAME=tas
 
-USER_HOME=/home/${USER}
-SCRATCH_DISK=/disk/scratch
-SCRATCH_HOME=${SCRATCH_DISK}/${USER}
+EDI_HOME=/home
+EDI_USER=s1915791
+EDI_PROJECT=git/robust-perception-tas
+EDI_PATH=${EDI_HOME}/${EDI_USER}
+EDI_PROJECT_PATH=${EDI_PATH}/${EDI_PROJECT}
 
-PROJECT=git/robust-perception-tas
-HOME_PROJECT=${USER_HOME}/${PROJECT}
-SCRATCH_PROJECT=${SCRATCH_HOME}/${PROJECT}
+SCRATCH_HOME=/disk/scratch
+SCRATCH_USER=s1915791
+SCRATCH_PROJECT=git/robust-perception-tas
+SCRATCH_PATH=${SCRATCH_HOME}/${SCRATCH_USER}
+SCRATCH_PROJECT_PATH=${SCRATCH_PATH}/${SCRATCH_PROJECT}
 
-INPUT_DIR=data/sets
-OUTPUT_DIR=ckpt
+INPUT_DN=data/sets
+OUTPUT_DN=ckpt
 
 
 # ====================
@@ -98,7 +102,7 @@ set -e
 # N.B. disk could be at /disk/scratch_big, or /disk/scratch_fast. Check
 # yourself using an interactive session, or check the docs:
 #     http://computing.help.inf.ed.ac.uk/cluster-computing
-mkdir -p ${SCRATCH_HOME}
+mkdir -p ${SCRATCH_PATH}
 
 # Activate your conda environment
 echo "Activating conda environment: ${CONDA_ENV_NAME}"
@@ -122,14 +126,14 @@ conda activate ${CONDA_ENV_NAME}
 # the scratch space on the nodes, see:
 #     http://computing.help.inf.ed.ac.uk/cluster-tips
 
-echo "Moving input data to the compute node's scratch space: $SCRATCH_DISK"
+echo "Moving input data to the compute node's scratch space: $SCRATCH_HOME"
 
 # input data directory path on the DFS
-src_path=${HOME_PROJECT}/${INPUT_DIR}
+src_path=${EDI_PROJECT_PATH}/${INPUT_DN}
 
 
 # input data directory path on the scratch disk of the node
-dest_path=${SCRATCH_PROJECT}/${INPUT_DIR}
+dest_path=${SCRATCH_PROJECT_PATH}/${INPUT_DN}
 mkdir -p ${dest_path}  # make it if required
 
 # Important notes about rsync:
@@ -169,8 +173,8 @@ fi
 
 echo "Moving output data back to DFS"
 
-src_path=${SCRATCH_PROJECT}/${OUTPUT_DIR}
-dest_path=${HOME_PROJECT}/${OUTPUT_DIR}
+src_path=${SCRATCH_PROJECT_PATH}/${OUTPUT_DN}
+dest_path=${EDI_PROJECT_PATH}/${OUTPUT_DN}
 rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 
 

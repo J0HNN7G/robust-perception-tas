@@ -6,6 +6,7 @@ data/sets/*
 ckpt/*
 # slurm
 slurm/experiment*
+slurm/config*
 # wandb
 wandb/*
 !wandb/wandb_ckpt.py

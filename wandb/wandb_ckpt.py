@@ -17,26 +17,31 @@ BEST_VAL_NAME = VAL_AP_NAME + '_best'
 
 
 def main(cfg):
+    # remove batch run from name:
+    dataset_name = cfg.DATASET.path.split('/')[-1].lower()
+    exp_name = f'{cfg.MODEL.arch}_{dataset_name}'
+
     run = wandb.init(
         project='robust-perception-tas',
-        name=cfg.DIR.split('/')[-1],
+        name=exp_name,
         config = {
             'architecture' : cfg.MODEL.arch,
-            'dataset' : cfg.DATASET.root_dataset.split('/')[-1],
-            f'{TRAIN_NAME}/batch_size' : cfg.TRAIN.batch_size, 
-            f'{TRAIN_NAME}/epochs' : cfg.TRAIN.num_epoch,
-            f'{TRAIN_NAME}/optimizer' : cfg.TRAIN.optim,
-            f'{TRAIN_NAME}/optimizer_momentum' : cfg.TRAIN.momentum, 
-            f'{TRAIN_NAME}/optimizer_weight_decay' : cfg.TRAIN.weight_decay, 
-            f'{TRAIN_NAME}/initial_learning_rate': cfg.TRAIN.lr,
-            f'{TRAIN_NAME}/learning_rate_step_size' : cfg.TRAIN.lr_step_size,
-            f'{TRAIN_NAME}/learning_rate_gamma' : cfg.TRAIN.lr_gamma,
-            f'{TRAIN_NAME}/early_stopping_threshold_epochs' : cfg.TRAIN.early_stop,
+            'dataset' : dataset_name,
+            f'{TRAIN_NAME}/data/batch_size' : cfg.TRAIN.DATA.batch_size, 
+            f'{TRAIN_NAME}/len/epochs' : cfg.TRAIN.LEN.num_epoch,
+            f'{TRAIN_NAME}/len/early_stop' : cfg.TRAIN.LEN.early_stop,
+            f'{TRAIN_NAME}/optim/optimizer' : cfg.TRAIN.OPTIM.optim,
+            f'{TRAIN_NAME}/optim/momentum' : cfg.TRAIN.OPTIM.momentum, 
+            f'{TRAIN_NAME}/optim/weight_decay' : cfg.TRAIN.OPTIM.weight_decay, 
+            f'{TRAIN_NAME}/optim/initial': cfg.TRAIN.OPTIM.lr,
+            f'{TRAIN_NAME}/lr/schedule': cfg.TRAIN.LR.schedule,
+            f'{TRAIN_NAME}/lr/step_size' : cfg.TRAIN.LR.step_size,
+            f'{TRAIN_NAME}/lr/gamma' : cfg.TRAIN.LR.gamma,
             f'{TRAIN_NAME}/seed' : cfg.TRAIN.seed, 
         }
     )
 
-    with open(cfg.MODEL.history, 'r') as f:
+    with open(cfg.TRAIN.history, 'r') as f:
             lines = f.readlines()
             # ignore epoch
             headers = lines[0].split(SEP)[1:]
@@ -55,7 +60,7 @@ def main(cfg):
                     best_val_ap = vals[val_ap_idx]
     
     # log visual
-    im_fp = os.path.join(cfg.DIR, cfg.VAL.visual_name)
+    im_fp = os.path.join(cfg.TRAIN.path, cfg.TRAIN.FN.vis)
     wandb.log({"val/examples": wandb.Image(im_fp)})
 
     run.summary.update({BEST_VAL_NAME : best_val_ap})
@@ -69,9 +74,9 @@ if __name__ == '__main__':
         description="Wandb Logging for PyTorch Pedestrian Detection Finetuning"
     )
     parser.add_argument(
-        "--ckpt",
+        "-c", "--ckpt",
         default="ckpt/fasterrcnn_resnet50_fpn-pennfudan",
-        metavar="FILE",
+        metavar="PATH",
         help="path to model checkpoint directory",
         type=str,
     )
@@ -81,14 +86,14 @@ if __name__ == '__main__':
     cfg.merge_from_file(cfg_fp)
 
     # setup logger
-    cfg.MODEL.log = os.path.join(cfg.DIR, cfg.MODEL.log_name)
-    cfg.MODEL.history = os.path.join(cfg.DIR, cfg.MODEL.history_name)
-    assert os.path.exists(cfg.MODEL.log), 'logs do not exist!'
-    assert os.path.exists(cfg.MODEL.history), 'history does not exist!'
+    cfg.TRAIN.log = os.path.join(cfg.TRAIN.path, cfg.TRAIN.FN.log)
+    cfg.TRAIN.history = os.path.join(cfg.TRAIN.path, cfg.TRAIN.FN.hist)
+    assert os.path.exists(cfg.TRAIN.log), 'logs do not exist!'
+    assert os.path.exists(cfg.TRAIN.history), 'history does not exist!'
     logging.basicConfig(level=logging.INFO,
                         format='[%(asctime)s %(levelname)s %(filename)s] %(message)s',
                         datefmt='%H:%M:%S',
-                        handlers=[logging.FileHandler(cfg.MODEL.log)])
-    logging.info(f"Starting Wandb Logging for experiment {cfg.DIR.split('/')[-1]}")
+                        handlers=[logging.FileHandler(cfg.TRAIN.log)])
+    logging.info(f"Starting Wandb Logging for experiment {cfg.TRAIN.path.split('/')[-1]}")
 
     main(cfg)

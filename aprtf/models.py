@@ -11,7 +11,7 @@ import torchvision.models.detection as td
 
 class ModelBuilder:
     @staticmethod
-    def build_detector(args, num_classes, weights):
+    def build_detector(args, weights, num_classes=2):
         pretrained = (len(weights) > 0)
         if args.arch == 'fasterrcnn_resnet50_fpn':
             if pretrained:

@@ -50,6 +50,7 @@ VAL_HEADERS = [VAL_AP_NAME, VAL_AR_NAME]
 IGNORE_HEADERS = ['eta', 'lr', 'time', 'data', 'max_mem']
 SEP = '\t'
 
+
 def setup_previous_history(history, cfg):
     # catch up on history
     with open(cfg.TRAIN.history, 'r') as f:

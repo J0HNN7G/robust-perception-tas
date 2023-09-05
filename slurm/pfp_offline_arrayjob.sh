@@ -20,6 +20,10 @@
 # ```
 
 # constants
+DATA_LINK=https://www.cis.upenn.edu/~jshi/ped_html/PennFudanPed.zip
+DATA_SCRIPT_FN=pfp_gen_odgt.py
+DATA_SET_DN=PennFudanPed
+
 CONDA_ENV_NAME=tas
 
 EDI_HOME=/home
@@ -34,7 +38,8 @@ SCRATCH_PROJECT=git/robust-perception-tas
 SCRATCH_PATH=${SCRATCH_HOME}/${SCRATCH_USER}
 SCRATCH_PROJECT_PATH=${SCRATCH_PATH}/${SCRATCH_PROJECT}
 
-INPUT_DN=data/sets
+DATA_DN=data
+INPUT_PATH=${DATA_DN}/sets
 OUTPUT_DN=ckpt
 
 
@@ -147,6 +152,10 @@ mkdir -p ${dest_path}  # make it if required
 #       https://download.samba.org/pub/rsync/rsync.html
 
 rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
+
+
+# data processing
+python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}/${DATASET_DN}
 
 # ==============================
 # Finally, run the experiment!

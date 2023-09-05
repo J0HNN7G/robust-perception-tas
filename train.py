@@ -47,8 +47,8 @@ WEIGHT_BEST_FN = 'weights_best.pth'
 
 TRAIN_HEADERS = [TRAIN_EPOCH_NAME, TRAIN_LR_NAME]
 VAL_HEADERS = [VAL_AP_NAME, VAL_AR_NAME]
+IGNORE_HEADERS = ['eta', 'lr', 'time', 'data', 'max_mem']
 SEP = '\t'
-
 
 def setup_previous_history(history, cfg):
     # catch up on history
@@ -68,7 +68,7 @@ def setup_previous_history(history, cfg):
 
 
 def setup_loss_details(train_log, cfg):
-    loss_names = [loss_name for loss_name in train_log.meters.keys() if 'loss' in loss_name]
+    loss_names = [loss_name for loss_name in train_log.meters.keys() if loss_name not in IGNORE_HEADERS]
     loss_headers = [TRAIN_NAME + '/' + loss_name for loss_name in loss_names]
     # check same loss headers if part of partial run
     if cfg.TRAIN.LEN.start_epoch > 0:

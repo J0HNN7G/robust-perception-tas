@@ -1,11 +1,8 @@
 #!/bin/bash
 # Author(s): James Owers (james.f.owers@gmail.com), Jonathan Gustafsson Frennert (jonathan.frennert@gmail.com)
 #
-# Experiment with PennFudanPed 
-#
-# Template for running an sbatch arrayjob with a file containing a list of
-# commands to run. Copy this, remove the .template, and edit as you wish to
-# fit your needs.
+# Run an sbatch arrayjob with a file containing a list of
+# commands to run with PennFudanPed dataset on offline node.
 # 
 # Assuming this file has been edited and renamed slurm_arrayjob.sh, here's an
 # example usage:
@@ -22,10 +19,6 @@
 # ```
 
 # constants
-DATA_LINK=https://www.cis.upenn.edu/~jshi/ped_html/PennFudanPed.zip
-DATA_SCRIPT_FN=pfp_gen_odgt.py
-DATA_SET_DN=PennFudanPed
-
 CONDA_ENV_NAME=tas
 
 EDI_HOME=/home
@@ -41,8 +34,12 @@ SCRATCH_PATH=${SCRATCH_HOME}/${SCRATCH_USER}
 SCRATCH_PROJECT_PATH=${SCRATCH_PATH}/${SCRATCH_PROJECT}
 
 DATA_DN=data
-INPUT_PATH=${DATA_DN}/sets
 OUTPUT_DN=ckpt
+INPUT_PATH=${DATA_DN}/sets
+
+DATA_SCRIPT_FN=pfp_gen_odgt.py
+DATA_LINK=https://www.cis.upenn.edu/~jshi/ped_html/PennFudanPed.zip
+
 
 
 # ====================
@@ -116,9 +113,9 @@ echo "Activating conda environment: ${CONDA_ENV_NAME}"
 conda activate ${CONDA_ENV_NAME}
 
 
-# =================================
-# Move input data to scratch disk
-# =================================
+# =====================================
+# Download input data to scratch disk
+# =====================================
 # downloading input data zip to scratch disk and uncompressing it
 
 echo "Downloading input data to the compute node's scratch space: $SCRATCH_HOME"
@@ -129,8 +126,14 @@ mkdir -p ${dest_path}  # make it if required
 
 wget -c -N $DATA_LINK -P ${dest_path}
 unzip -u ${dest_path}.\*zip -d ${dest_path}
-# data processing
-python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}/${DATASET_DN}
+
+
+# ======================
+# Pre-processing data
+# ======================
+# pre-processing the data on the scratch disk with the data script
+python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}
+
 
 # ==============================
 # Finally, run the experiment!

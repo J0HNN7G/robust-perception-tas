@@ -1,9 +1,8 @@
 #!/bin/bash
-# Author(s): James Owers (james.f.owers@gmail.com)
+# Author(s): James Owers (james.f.owers@gmail.com), Jonathan Gustafsson Frennert (jonathan.frennert@gmail.com)
 #
-# Template for running an sbatch arrayjob with a file containing a list of
-# commands to run. Copy this, remove the .template, and edit as you wish to
-# fit your needs.
+# Run an sbatch arrayjob with a file containing a list of
+# commands to run with PennFudanPed dataset on offline node.
 # 
 # Assuming this file has been edited and renamed slurm_arrayjob.sh, here's an
 # example usage:
@@ -20,10 +19,6 @@
 # ```
 
 # constants
-DATA_LINK=https://www.cis.upenn.edu/~jshi/ped_html/PennFudanPed.zip
-DATA_SCRIPT_FN=pfp_gen_odgt.py
-DATA_SET_DN=PennFudanPed
-
 CONDA_ENV_NAME=tas
 
 EDI_HOME=/home
@@ -39,8 +34,10 @@ SCRATCH_PATH=${SCRATCH_HOME}/${SCRATCH_USER}
 SCRATCH_PROJECT_PATH=${SCRATCH_PATH}/${SCRATCH_PROJECT}
 
 DATA_DN=data
-INPUT_PATH=${DATA_DN}/sets
 OUTPUT_DN=ckpt
+INPUT_PATH=${DATA_DN}/sets
+
+DATA_SCRIPT_FN=pfp_gen_odgt.py
 
 
 # ====================
@@ -134,11 +131,11 @@ conda activate ${CONDA_ENV_NAME}
 echo "Moving input data to the compute node's scratch space: $SCRATCH_HOME"
 
 # input data directory path on the DFS
-src_path=${EDI_PROJECT_PATH}/${INPUT_DN}
+src_path=${EDI_PROJECT_PATH}/${INPUT_PATH}
 
 
 # input data directory path on the scratch disk of the node
-dest_path=${SCRATCH_PROJECT_PATH}/${INPUT_DN}
+dest_path=${SCRATCH_PROJECT_PATH}/${INPUT_PATH}
 mkdir -p ${dest_path}  # make it if required
 
 # Important notes about rsync:
@@ -154,8 +151,12 @@ mkdir -p ${dest_path}  # make it if required
 rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 
 
-# data processing
-python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}/${DATASET_DN}
+# ======================
+# Pre-processing data
+# ======================
+# pre-processing the data on the scratch disk with the data script
+python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}
+
 
 # ==============================
 # Finally, run the experiment!

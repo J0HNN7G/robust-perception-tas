@@ -5,9 +5,9 @@ data/sets/*
 # checkpoints
 ckpt/*
 # slurm
-slurm/slurm-*
-slurm/experiment*
-slurm/config*
+slurm/*
+!slurm/slurm_check.py
+!slurm/slurm_gen.py
 # wandb
 wandb/*
 !wandb/wandb_ckpt.py

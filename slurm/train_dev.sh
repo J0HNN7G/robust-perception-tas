@@ -93,7 +93,7 @@ python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_
 # ==============================
 # Finally, run the experiment!
 # ==============================
-python ${EDI_PROJECT_PATH}/train.py -c ${EDI_PROJECT_PATH}/config/retinanet_resnet50_fpn-pennfudanped.yaml -i ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}/PennFudanPed -o ${SCRATCH_PROJECT_PATH}/ckpt/retinanet_resnet50_fpn-pennfudanped
+python ${EDI_PROJECT_PATH}/train.py -c ${EDI_PROJECT_PATH}/config/retinanet_resnet50_fpn-pennfudanped.yaml -i ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}/PennFudanPed -o ${SCRATCH_PROJECT_PATH}/ckpt/retinanet_resnet50_fpn-pennfudanped TRAIN.DATA.batch_size 1
 
 # ======================================
 # Move output data from scratch to DFS

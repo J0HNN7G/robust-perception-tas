@@ -24,6 +24,7 @@ setuptools.setup(
         'matplotlib',
         'Pillow',
         'tqdm',
+        'wandb',
         'yacs',
         'cython',
         'pycocotools'

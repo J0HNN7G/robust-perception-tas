@@ -84,6 +84,7 @@ if __name__ == '__main__':
     cfg_fp = os.path.join(args.ckpt, 'config.yaml')
     assert os.path.exists(cfg_fp), 'config.yaml does not exist!'
     cfg.merge_from_file(cfg_fp)
+    cfg.TRAIN.path = args.ckpt
 
     # setup logger
     cfg.TRAIN.log = os.path.join(cfg.TRAIN.path, cfg.TRAIN.FN.log)

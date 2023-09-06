@@ -12,8 +12,8 @@ conda install pytorch==2.0.0 torchvision==0.15.0 pytorch-cuda=11.7 -c pytorch -c
 # data processing
 conda install numpy matplotlib Pillow tqdm
 
-# config and metrics (not on conda)
-pip install yacs cython pycocotools --upgrade-strategy only-if-needed
+# config, logging and metrics (not on conda)
+pip install wandb yacs cython pycocotools --upgrade-strategy only-if-needed
 
 # aprtf
 cd <robust-perception-tas_directory>

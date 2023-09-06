@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 
 # constants
-LOC_OPTS = ['PERSONAL', 'SCRATCH']
+LOC_OPTS = ['PERSONAL', 'EDI']
 
 PARAM_LIST = ['DATA.batch_size', 'OPTIM.lr', 'OPTIM.momentum', 'OPTIM.weight_decay', 'LR.step_size', 'LR.gamma']
 PARAM_CALLS = ['TRAIN.' + x for x in PARAM_LIST]
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         required=True,
         metavar="STR",
         choices=LOC_OPTS,
-        help="Working directory [PERSONAL,SCRATCH]",
+        help="Working directory [PERSONAL,EDI]",
         type=str,
     )
 
@@ -68,31 +68,33 @@ if __name__ == '__main__':
     with open(args.config, 'r') as f:
         cfg = json.load(f)
 
-    INPUT_HOME = cfg[args.loc]['HOME']
-    INPUT_USER = cfg[args.loc]['USER']
-    INPUT_PROJECT = cfg[args.loc]['PROJECT']
+    MAIN_HOME = cfg[args.loc]['HOME']
+    MAIN_USER = cfg[args.loc]['USER']
+    MAIN_PROJECT = cfg[args.loc]['PROJECT']
 
-    # output on scratch disk
+    # node details 
     if args.loc == LOC_OPTS[1]:
-        OUTPUT_HOME = cfg['SCRATCH']['HOME']
-        OUTPUT_USER = cfg['SCRATCH']['USER']
-        OUTPUT_PROJECT = cfg['SCRATCH']['PROJECT']
+        NODE_HOME = cfg['SCRATCH']['HOME']
+        NODE_USER = cfg['SCRATCH']['USER']
+        NODE_PROJECT = cfg['SCRATCH']['PROJECT']
     elif args.loc == LOC_OPTS[0]:
-        OUTPUT_HOME = INPUT_HOME
-        OUTPUT_USER = INPUT_USER
-        OUTPUT_PROJECT = INPUT_PROJECT
+        NODE_HOME = MAIN_HOME
+        NODE_USER = MAIN_USER
+        NODE_PROJECT = MAIN_PROJECT
     else:
         raise ValueError('Unsupported choice!')
 
         
     exp_name = f"{cfg['ARCH']}-{cfg['DATASET'].lower()}" 
-    input_project_path = os.path.join(INPUT_HOME, INPUT_USER, INPUT_PROJECT)
-    input_train_path = os.path.join(input_project_path, cfg['TRAIN_FN'])
-    input_config_path = os.path.join(input_project_path, cfg['CONFIG_DN'], f"{exp_name}.yaml" )
-    input_data_path = os.path.join(input_project_path, cfg['DATA_DN'], cfg['DATASET'])
-    output_ckpt_path = os.path.join(OUTPUT_HOME, OUTPUT_USER, OUTPUT_PROJECT, cfg['CKPT_DN'], exp_name)
+    main_project_path = os.path.join(MAIN_HOME, MAIN_USER, MAIN_PROJECT)
+    train_path = os.path.join(main_project_path, cfg['TRAIN_FN'])
+    config_path = os.path.join(main_project_path, cfg['CONFIG_DN'], f"{exp_name}.yaml" )
+    
+    node_project_path = os.path.join(NODE_HOME, NODE_USER, NODE_PROJECT)
+    data_path = os.path.join(node_project_path, cfg['DATA_DN'], cfg['DATASET'])
+    ckpt_path = os.path.join(node_project_path, cfg['CKPT_DN'], exp_name)
 
-    base_call = f"python {input_train_path} -c {input_config_path} -i {input_data_path} -o {output_ckpt_path}"
+    base_call = f"python {train_path} -c {config_path} -i {data_path} -o {ckpt_path}"
 
     # parameters
     batch_size = [1, 4, 16, 64]
@@ -111,15 +113,15 @@ if __name__ == '__main__':
     print(f'Estimated time = {(nr_expts / NR_SERVERS * AVG_EXPT_TIME)/60} hrs')
 
 
-    input_slurm_path = os.path.join(input_project_path, cfg['SLURM_DN'])
-    input_exp_txt_path = os.path.join(input_slurm_path, cfg['EXP']['TXT_FN'])
-    input_exp_tsv_path = os.path.join(input_slurm_path, cfg['EXP']['TSV']['DEFAULT_FN'])
+    main_slurm_path = os.path.join(main_project_path, cfg['SLURM_DN'])
+    main_exp_txt_path = os.path.join(main_slurm_path, cfg['EXP']['TXT_FN'])
+    main_exp_tsv_path = os.path.join(main_slurm_path, cfg['EXP']['TSV']['DEFAULT_FN'])
     # clear tsv and create header
-    with open(input_exp_tsv_path, 'w') as f:
+    with open(main_exp_tsv_path, 'w') as f:
         header =  SEP.join([IDX_NAME] + PARAM_LIST) + '\n'
         f.write(header)
     # create/clear experiments file
-    open(input_exp_txt_path, 'w').close()
+    open(main_exp_txt_path, 'w').close()
 
     for i, params in enumerate(settings, start=1):
         param_call_str = ' '.join(f"{param_call} {param}" for param_call, param in zip(PARAM_CALLS, params))
@@ -127,8 +129,8 @@ if __name__ == '__main__':
         # and recorded in the output data by the python script
         expt_call = f"{base_call}_{i} {param_call_str}\n"
         
-        with open(input_exp_txt_path, 'a') as f:
+        with open(main_exp_txt_path, 'a') as f:
             f.write(expt_call)
-        with open(input_exp_tsv_path, 'a') as f:
+        with open(main_exp_tsv_path, 'a') as f:
             line = SEP.join([str(i)] + [str(x) for x in params]) + '\n'
             f.write(line)

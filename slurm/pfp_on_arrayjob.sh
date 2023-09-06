@@ -37,7 +37,7 @@ DATA_DN=data
 OUTPUT_DN=ckpt
 INPUT_PATH=${DATA_DN}/sets
 
-DATA_SCRIPT_FN=pfp_gen_odgt.py
+DATA_SCRIPT_FN=pfp_odgt.py
 DATA_LINK=https://www.cis.upenn.edu/~jshi/ped_html/PennFudanPed.zip
 
 

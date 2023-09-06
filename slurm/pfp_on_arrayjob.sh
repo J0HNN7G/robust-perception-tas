@@ -153,6 +153,7 @@ if eval "${COMMAND}"; then
     echo "Command ran successfully!"
 else
     echo "Command failed!"
+    exit 1
 fi
 
 # ======================================

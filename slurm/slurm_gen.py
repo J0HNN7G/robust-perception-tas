@@ -77,10 +77,13 @@ if __name__ == '__main__':
         OUTPUT_HOME = cfg['SCRATCH']['HOME']
         OUTPUT_USER = cfg['SCRATCH']['USER']
         OUTPUT_PROJECT = cfg['SCRATCH']['PROJECT']
-    else:
+    elif args.loc == LOC_OPTS[0]:
         OUTPUT_HOME = INPUT_HOME
         OUTPUT_USER = INPUT_USER
         OUTPUT_PROJECT = INPUT_PROJECT
+    else:
+        raise ValueError('Unsupported choice!')
+
         
     exp_name = f"{cfg['ARCH']}-{cfg['DATASET'].lower()}" 
     input_project_path = os.path.join(INPUT_HOME, INPUT_USER, INPUT_PROJECT)

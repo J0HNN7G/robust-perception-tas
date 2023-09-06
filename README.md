@@ -70,13 +70,13 @@ TRAIN:
 python train.py -c <config_filepath> -i <train_val_odgt_dirpath> -o <checkpoint_dirpath>
 ```
 
-4. Results are stored at directory specified by `TRAIN.path` in configuration file. By default your directory will be set up as follows:
+4. Results are stored at the checkpoint directory. By default your directory will be set up as follows:
 ```
 <DIR>
 ├── weights_best.pth        # checkpoint with best validation mAP
-├── weigths_epoch_<n>.pth   # last checkpoint whilst running
+├── weights_epoch_<n>.pth   # last checkpoint whilst running
 ├── weights_final.pth       # final checkpoint if run finished
 ├── history.tsv             # training and validation metrics history
-├── config.yaml             # configuration file copy
+├── config.yaml             # configuration file (updated with train.py arguments)
 └── log.txt                 # model training logs
 ```

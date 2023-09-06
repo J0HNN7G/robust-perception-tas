@@ -21,11 +21,11 @@
 # constants
 CONDA_ENV_NAME=tas
 
-EDI_HOME=/home
-EDI_USER=s1915791
-EDI_PROJECT=git/robust-perception-tas
-EDI_PATH=${EDI_HOME}/${EDI_USER}
-EDI_PROJECT_PATH=${EDI_PATH}/${EDI_PROJECT}
+MAIN_HOME=/home
+MAIN_USER=s1915791
+MAIN_PROJECT=git/robust-perception-tas
+MAIN_PATH=${MAIN_HOME}/${MAIN_USER}
+MAIN_PROJECT_PATH=${MAIN_PATH}/${MAIN_PROJECT}
 
 SCRATCH_HOME=/disk/scratch
 SCRATCH_USER=s1915791
@@ -131,7 +131,7 @@ conda activate ${CONDA_ENV_NAME}
 echo "Moving input data to the compute node's scratch space: $SCRATCH_HOME"
 
 # input data directory path on the DFS
-src_path=${EDI_PROJECT_PATH}/${INPUT_PATH}
+src_path=${MAIN_PROJECT_PATH}/${INPUT_PATH}
 
 
 # input data directory path on the scratch disk of the node
@@ -155,7 +155,10 @@ rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 # Pre-processing data
 # ======================
 # pre-processing the data on the scratch disk with the data script
-python ${EDI_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}
+
+echo "Pre-processing data in scratch space"
+
+python ${MAIN_PROJECT_PATH}/${DATA_DN}/${DATA_SCRIPT_FN} --dir ${SCRATCH_PROJECT_PATH}/${INPUT_PATH}
 
 
 # ==============================
@@ -184,7 +187,7 @@ fi
 echo "Moving output data back to DFS"
 
 src_path=${SCRATCH_PROJECT_PATH}/${OUTPUT_DN}
-dest_path=${EDI_PROJECT_PATH}/${OUTPUT_DN}
+dest_path=${MAIN_PROJECT_PATH}/${OUTPUT_DN}
 rsync --archive --update --compress --progress ${src_path}/ ${dest_path}
 
 

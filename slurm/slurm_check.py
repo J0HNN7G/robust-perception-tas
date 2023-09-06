@@ -5,6 +5,7 @@ import argparse
 
 # constants
 TRANSFER_TO_PREFIX = "Moving input data to the compute node's scratch space: "
+PREPROCESS_PROMPT = "Pre-processing data in scratch space"
 RUNNING_PREFIX = 'Running provided command: '
 FAILED_PROMPT = 'Command failed!'
 TRANSFER_FROM_PROMPT = "Moving output data back to DFS"
@@ -51,6 +52,7 @@ if __name__ == '__main__':
     # different job status
     queuing_ids = []
     transferTo_ids = []
+    preprocess_ids = []
     running_ids = []
     transferFrom_ids = []
     finished_ids = []
@@ -69,38 +71,42 @@ if __name__ == '__main__':
             queuing_ids.append(id)
             continue
 
-        process_flags = [False for _ in range(6)]
+        process_flags = [False for _ in range(7)]
         with open(slurm_log_fp, 'r') as f:
             log_line = f.readline()
             while log_line:
                 if TRANSFER_TO_PREFIX in log_line:
                     process_flags[0] = True
-                elif (RUNNING_PREFIX + line) in log_line:
+                elif PREPROCESS_PROMPT  in log_line:
                     process_flags[1] = True
-                elif TRANSFER_FROM_PROMPT  in log_line:
+                elif (RUNNING_PREFIX + line) in log_line:
                     process_flags[2] = True
-                elif FINISHED_PROMPT in log_line:
+                elif TRANSFER_FROM_PROMPT  in log_line:
                     process_flags[3] = True
-                    break
-                elif FAILED_PROMPT in log_line:
+                elif FINISHED_PROMPT in log_line:
                     process_flags[4] = True
                     break
-                elif TIMEOUT_PROMPT in log_line:
+                elif FAILED_PROMPT in log_line:
                     process_flags[5] = True
+                    break
+                elif TIMEOUT_PROMPT in log_line:
+                    process_flags[6] = True
                     break
                 log_line = f.readline()
 
         # sort flags
-        if process_flags[5]:
+        if process_flags[6]:
             timeout_ids.append(id)
-        elif process_flags[4]:
+        elif process_flags[5]:
             failed_ids.append(id)
-        elif process_flags[3]:
+        elif process_flags[4]:
             finished_ids.append(id)
-        elif process_flags[2]:
+        elif process_flags[3]:
             transferFrom_ids.append(id)
-        elif process_flags[1]:
+        elif process_flags[2]:
             running_ids.append(id)
+        elif process_flags[1]:
+            preprocess_ids.append(id)
         elif process_flags[0]:
             transferTo_ids.append(id)
 
@@ -110,6 +116,10 @@ if __name__ == '__main__':
 
     print('TRANSFER TO GPU NODE ----------')
     print(transferTo_ids)
+    print()
+
+    print('PREPROCESSING ON GPU NODE ----------')
+    print(preprocess_ids)
     print()
 
     print('RUNNING ----------')

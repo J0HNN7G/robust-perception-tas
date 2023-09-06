@@ -23,6 +23,7 @@ setuptools.setup(
         'numpy',
         'matplotlib',
         'Pillow',
+        'tqdm',
         'yacs',
         'cython',
         'pycocotools'

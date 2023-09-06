@@ -29,7 +29,7 @@ if __name__ == '__main__':
         required=True,
         metavar="PATH",
         help="Absolute path to path config file",
-        type=int,
+        type=str,
     )
     args = parser.parse_args()
     if args.job < 1:
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     print('FINISHED ----------')
     print(finished_ids)
     print()
-    
+
     print('FAILED ----------')
     print(failed_ids)
     print()

@@ -5,6 +5,7 @@ data/sets/*
 # checkpoints
 ckpt/*
 # slurm
+slurm/slurm-*
 slurm/experiment*
 slurm/config*
 # wandb

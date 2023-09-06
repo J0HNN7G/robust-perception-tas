@@ -17,7 +17,7 @@ SEP = '\t'
 
 NR_SERVERS = 10
 # in minutes
-AVG_EXPT_TIME = 40
+AVG_EXPT_TIME = 5
 
 
 def cartesian(arrays):
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     base_call = f"python {input_train_path} -c {input_config_path} -i {input_data_path} -o {output_ckpt_path}"
 
     # parameters
-    batch_size = [1, 128]
+    batch_size = [1, 4, 16, 64]
     lrs = [0.005]
     step_sizes = [3]
     gammas = [0.1]

@@ -1,0 +1,5 @@
+To sync outputs to personal computer:
+rsync --archive --update --compress --progress mlp.inf.ed.ac.uk:git/robust-perception-tas/ckpt/ git/robust-perception-tas/ckpt
+
+To run batch of experiments: 
+run_experiment -b git/robust-perception-tas/slurm/pfp_off_array_job.sh -e git/robust-perception-tas/slurm/experiments.txt

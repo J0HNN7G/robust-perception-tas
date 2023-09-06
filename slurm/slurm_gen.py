@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 
 # constants
-LOC_OPTS = ['PERSONAL', 'EDI']
+LOC_OPTS = ['PERSONAL', 'SCRATCH']
 
 PARAM_LIST = ['DATA.batch_size', 'OPTIM.lr', 'OPTIM.momentum', 'OPTIM.weight_decay', 'LR.step_size', 'LR.gamma']
 PARAM_CALLS = ['TRAIN.' + x for x in PARAM_LIST]
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         required=True,
         metavar="STR",
         choices=LOC_OPTS,
-        help="Working directory [PERSONAL,EDI]",
+        help="Working directory [PERSONAL,SCRATCH]",
         type=str,
     )
 

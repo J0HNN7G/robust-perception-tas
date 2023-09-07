@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Script for generating experiments.txt"""
+"""Script for generating slurm batch experiments"""
 import os
 import json
 import argparse
@@ -12,13 +12,9 @@ LOC_OPTS = ['PERSONAL', 'EDI']
 
 PARAM_LIST = ['DATA.batch_size', 'OPTIM.lr', 'OPTIM.momentum', 'OPTIM.weight_decay', 'LR.step_size', 'LR.gamma']
 PARAM_CALLS = ['TRAIN.' + x for x in PARAM_LIST]
-IDX_NAME = 'idx'
+EXP_NAME = 'name'
+CMD_NAME = 'cmd'
 SEP = '\t'
-
-NR_SERVERS = 10
-# in minutes
-AVG_EXPT_TIME = 5
-
 
 def cartesian(arrays):
     """
@@ -110,27 +106,21 @@ if __name__ == '__main__':
     # generation
     nr_expts = len(settings)
     print(f'Total experiments = {nr_expts}')
-    print(f'Estimated time = {(nr_expts / NR_SERVERS * AVG_EXPT_TIME)/60} hrs')
-
 
     main_slurm_path = os.path.join(main_project_path, cfg['SLURM_DN'])
-    main_exp_txt_path = os.path.join(main_slurm_path, cfg['EXP']['TXT_FN'])
-    main_exp_tsv_path = os.path.join(main_slurm_path, cfg['EXP']['TSV']['DEFAULT_FN'])
+    main_exp_path = os.path.join(main_slurm_path, cfg['EXP']['TSV']['DEFAULT_FN'])
     # clear tsv and create header
-    with open(main_exp_tsv_path, 'w') as f:
-        header =  SEP.join([IDX_NAME] + PARAM_LIST) + '\n'
+    with open(main_exp_path, 'w') as f:
+        header =  SEP.join(PARAM_LIST + [EXP_NAME, CMD_NAME]) + '\n'
         f.write(header)
-    # create/clear experiments file
-    open(main_exp_txt_path, 'w').close()
 
     for i, params in enumerate(settings, start=1):
         param_call_str = ' '.join(f"{param_call} {param}" for param_call, param in zip(PARAM_CALLS, params))
         # Note that we don't set a seed for rep - a seed is selected at random
         # and recorded in the output data by the python script
-        expt_call = f"{base_call}_{i} {param_call_str}\n"
+        expt_call = f"{base_call}_{i} {param_call_str}"
+        dn = f"{exp_name}_{i}"
         
-        with open(main_exp_txt_path, 'a') as f:
-            f.write(expt_call)
-        with open(main_exp_tsv_path, 'a') as f:
-            line = SEP.join([str(i)] + [str(x) for x in params]) + '\n'
+        with open(main_exp_path, 'a') as f:
+            line = SEP.join([str(x) for x in params] + [dn, expt_call]) + '\n'
             f.write(line)

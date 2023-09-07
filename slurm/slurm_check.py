@@ -43,11 +43,10 @@ if __name__ == '__main__':
     project_path = os.path.join(cfg['EDI']['HOME'], 
                                 cfg['EDI']['USER'], 
                                 cfg['EDI']['PROJECT'])
-    slurm_path = os.path.join(project_path, cfg['SLURM_DN']) 
-    exp_txt_fp = os.path.join(slurm_path, cfg['EXP']['TXT_FN'])
-    exp_tsv_fp = os.path.join(slurm_path, cfg['EXP']['TSV']['DEFAULT_FN'])
-    exp_tsv_fail_fp = os.path.join(slurm_path, cfg['EXP']['TSV']['FAILED_FN'])
-    exp_tsv_timeout_fp = os.path.join(slurm_path, cfg['EXP']['TSV']['TIMEOUT_FN'])
+    slurm_path = os.path.join(project_path, cfg['SLURM_DN'])
+    exp_fp = os.path.join(slurm_path, cfg['EXP']['TSV']['DEFAULT_FN'])
+    exp_fail_fp = os.path.join(slurm_path, cfg['EXP']['TSV']['FAILED_FN'])
+    exp_timeout_fp = os.path.join(slurm_path, cfg['EXP']['TSV']['TIMEOUT_FN'])
 
     # different job status
     queuing_ids = []
@@ -61,7 +60,7 @@ if __name__ == '__main__':
 
     # get experiments
     lines = []
-    with open(exp_txt_fp, 'r') as f:
+    with open(exp_fp, 'r') as f:
         lines = f.readlines()
 
     # look at status of each experiment
@@ -148,21 +147,21 @@ if __name__ == '__main__':
     if any_fails or any_timeouts:
         # saving details
         lines = []
-        with open(exp_tsv_fp, 'r') as f:
+        with open(exp_fp, 'r') as f:
             lines = f.readlines()
 
         if any_fails:
-            with open(exp_tsv_fail_fp, 'w') as f:
+            with open(exp_fail_fp, 'w') as f:
                 # header
                 f.write(lines[0])
                 for id in failed_ids:
                     f.write(lines[id])
-            print(f'Saved failed experiment details in: {exp_tsv_fail_fp}')
+            print(f'Saved failed experiment details in: {exp_fail_fp}')
 
         if any_timeouts:
-            with open(exp_tsv_fail_fp, 'w') as f:
+            with open(exp_fail_fp, 'w') as f:
                 # header
                 f.write(lines[0])
                 for id in timeout_ids:
                     f.write(lines[id])
-            print(f'Saved cancelled experiment details in: {exp_tsv_fail_fp}')
+            print(f'Saved cancelled experiment details in: {exp_fail_fp}')

@@ -4,6 +4,8 @@ import argparse
 
 
 # constants
+SLURM_DN = "slurm_logs"
+
 TRANSFER_TO_PREFIX = "Moving input data to the compute node's scratch space: "
 PREPROCESS_PROMPT = "Pre-processing data in scratch space"
 RUNNING_PREFIX = 'Running provided command: '
@@ -40,6 +42,9 @@ if __name__ == '__main__':
     with open(args.config, 'r') as f:
         cfg = json.load(f)
 
+    slurm_log_path = os.path.join(cfg['EDI']['HOME'], 
+                                  cfg['EDI']['USER'], 
+                                  SLURM_DN)
     project_path = os.path.join(cfg['EDI']['HOME'], 
                                 cfg['EDI']['USER'], 
                                 cfg['EDI']['PROJECT'])
@@ -65,7 +70,7 @@ if __name__ == '__main__':
 
     # look at status of each experiment
     for id, line in enumerate(lines, start=1):
-        slurm_log_fp = os.path.join(slurm_path, f'slurm-{args.job}_{id}.out') 
+        slurm_log_fp = os.path.join(slurm_log_path, f'slurm-{args.job}_{id}.out') 
         if not os.path.exists(slurm_log_fp):
             queuing_ids.append(id)
             continue

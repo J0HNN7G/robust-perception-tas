@@ -95,7 +95,7 @@ if __name__ == '__main__':
     else:
         open(odgt_fp_train, 'w').close() 
         indices2odgt(odgt_fp_train, dataset_dir_p, indices[:limit], img_fps, mask_fps)
-        print(f'Train file saved at: {odgt_fp_train}\n')
+        print(f'Train file saved at: {odgt_fp_train}')
 
     print(f'Validation indexing')
     odgt_fp_val = os.path.join(dataset_dir_p, f'{VAL_NAME}_{ODGT_NAME}')

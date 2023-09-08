@@ -71,7 +71,7 @@ if __name__ == '__main__':
         lines = f.readlines()
 
     # look at status of each experiment
-    for id, line in enumerate(lines, start=1):
+    for id, line in enumerate(lines[1:], start=1):
         slurm_log_fp = os.path.join(slurm_log_path, f'slurm-{args.job}_{id}.out') 
         if not os.path.exists(slurm_log_fp):
             queuing_ids.append(id)
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         # saving details
         lines = []
         with open(exp_fp, 'r') as f:
-            lines = f.readlines()[1:]
+            lines = f.readlines()
 
         if any_fails:
             with open(exp_fail_fp, 'w') as f:

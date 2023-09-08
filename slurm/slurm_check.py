@@ -11,6 +11,7 @@ PREPROCESS_PROMPT = "Pre-processing data in scratch space"
 RUNNING_PREFIX = 'Running provided command: '
 FAILED_PROMPT = 'Command failed!'
 TRANSFER_FROM_PROMPT = "Moving output data back to DFS"
+DELETE_PROMPT="Deleting output files in scratch space"
 FINISHED_PROMPT = 'Job finished successfully!'
 TIMEOUT_PROMPT = 'CANCELLED'
 
@@ -59,6 +60,7 @@ if __name__ == '__main__':
     preprocess_ids = []
     running_ids = []
     transferFrom_ids = []
+    delete_ids = []
     finished_ids = []
     failed_ids = []
     timeout_ids = []
@@ -75,7 +77,7 @@ if __name__ == '__main__':
             queuing_ids.append(id)
             continue
 
-        process_flags = [False for _ in range(7)]
+        process_flags = [False for _ in range(8)]
         with open(slurm_log_fp, 'r') as f:
             log_line = f.readline()
             while log_line:
@@ -87,24 +89,28 @@ if __name__ == '__main__':
                     process_flags[2] = True
                 elif TRANSFER_FROM_PROMPT  in log_line:
                     process_flags[3] = True
-                elif FINISHED_PROMPT in log_line:
+                elif DELETE_PROMPT  in log_line:
                     process_flags[4] = True
-                    break
-                elif FAILED_PROMPT in log_line:
+                elif FINISHED_PROMPT in log_line:
                     process_flags[5] = True
                     break
-                elif TIMEOUT_PROMPT in log_line:
+                elif FAILED_PROMPT in log_line:
                     process_flags[6] = True
+                    break
+                elif TIMEOUT_PROMPT in log_line:
+                    process_flags[7] = True
                     break
                 log_line = f.readline()
 
         # sort flags
-        if process_flags[6]:
+        if process_flags[7]:
             timeout_ids.append(id)
-        elif process_flags[5]:
+        elif process_flags[6]:
             failed_ids.append(id)
-        elif process_flags[4]:
+        elif process_flags[5]:
             finished_ids.append(id)
+        elif process_flags[4]:
+            delete_ids.append(id)
         elif process_flags[3]:
             transferFrom_ids.append(id)
         elif process_flags[2]:
@@ -131,6 +137,10 @@ if __name__ == '__main__':
     print()
 
     print('TRANSFER FROM GPU_NODE ----------')
+    print(transferFrom_ids)
+    print()
+
+    print('DELETING OUTPUT FROM GPU_NODE ----------')
     print(transferFrom_ids)
     print()
 

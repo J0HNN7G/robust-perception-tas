@@ -120,7 +120,7 @@ if __name__ == '__main__':
         elif process_flags[0]:
             transferTo_ids.append(id)
 
-    print('QUEUING ----------')
+    print('QUEUING/LOG_IN_OTHER_DIR ----------')
     print(queuing_ids)
     print()
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         # saving details
         lines = []
         with open(exp_fp, 'r') as f:
-            lines = f.readlines()
+            lines = f.readlines()[1:]
 
         if any_fails:
             with open(exp_fail_fp, 'w') as f:

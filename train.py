@@ -36,6 +36,7 @@ TRAIN_NAME = 'train'
 VAL_NAME = 'val'
 TRAIN_EPOCH_NAME = f'{TRAIN_NAME}/epoch'
 TRAIN_LR_NAME = f'{TRAIN_NAME}/lr_last_iter'
+TRAIN_TIME = f'{TRAIN_NAME/time}'
 VAL_AP_NAME = f'{VAL_NAME}/AP_0.5:0.95:0.05'
 VAL_AR_NAME = f'{VAL_NAME}/AR_0.5:0.95:0.05'
 
@@ -46,7 +47,7 @@ WEIGHT_FN = 'weights_epoch_{:d}.pth'
 WEIGHT_FINAL_FN = 'weights_final.pth'
 WEIGHT_BEST_FN = 'weights_best.pth'
 
-TRAIN_HEADERS = [TRAIN_EPOCH_NAME, TRAIN_LR_NAME]
+TRAIN_HEADERS = [TRAIN_EPOCH_NAME, TRAIN_TIME, TRAIN_LR_NAME]
 VAL_HEADERS = [VAL_AP_NAME, VAL_AR_NAME]
 IGNORE_HEADERS = ['eta', 'lr', 'time', 'data', 'max_mem']
 SEP = '\t'
@@ -258,6 +259,7 @@ def main(cfg, device):
 
         # update history
         history[TRAIN_EPOCH_NAME] = epoch
+        history[TRAIN_TIME] = train_log.meters['time'].total
         history[TRAIN_LR_NAME] = lr_scheduler.get_last_lr()[-1]
 
         # add training metrics

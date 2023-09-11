@@ -7,10 +7,11 @@ from aprtf.config import cfg
 
 # misc
 import logging
+from importlib import reload
 from tqdm import tqdm
 
 # main function
-from wandb.wandb_ckpt import main
+from wandb_ckpt import main
 
 
 if __name__ == '__main__':
@@ -33,7 +34,7 @@ if __name__ == '__main__':
             cfg_fp = os.path.join(ckpt_path, 'config.yaml')
             assert os.path.exists(cfg_fp), 'config.yaml does not exist!'
             cfg.merge_from_file(cfg_fp)
-            cfg.TRAIN.path = args.ckpt
+            cfg.TRAIN.path = ckpt_path
 
             # setup logger
             cfg.TRAIN.log = os.path.join(cfg.TRAIN.path, cfg.TRAIN.FN.log)
@@ -47,6 +48,9 @@ if __name__ == '__main__':
             logging.info(f"Starting Wandb Logging for experiment {cfg.TRAIN.path.split('/')[-1]}")
 
             main(cfg)
+
+            logging.shutdown()
+            reload(logging)
         except Exception as e:
             print(f"Checkpointing for {ckpt_dn} failed:")
             print(e)

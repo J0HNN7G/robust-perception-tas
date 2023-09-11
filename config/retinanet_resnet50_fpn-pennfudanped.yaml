@@ -11,13 +11,13 @@ TRAIN:
   path: ""
   seed: -1
   DATA:
-    batch_size: 32
+    batch_size: 4
     num_workers: 4
     disp_iter: 20
   LEN:
     num_epoch: 10
     start_epoch: 0
-    early_stop: 2
+    early_stop: 4
   OPTIM:
     optim: "sgd"
     lr: 0.005

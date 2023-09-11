@@ -1,3 +1,4 @@
+"""Train pedestrian detection model"""
 # code altered from TorchVision 0.3 Object Detection Finetuning Tutorial
 # http://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
 # code altered from MIT semantic segmentation repository
@@ -52,6 +53,16 @@ SEP = '\t'
 
 
 def setup_previous_history(history, cfg):
+    """
+    Set up the previous training history by reading from a history file.
+
+    Parameters:
+    - history (dict): A dictionary to store training history.
+    - cfg (object): A configuration object containing training parameters.
+
+    Returns:
+    None
+    """
     # catch up on history
     with open(cfg.TRAIN.history, 'r') as f:
         lines = f.readlines()
@@ -69,6 +80,17 @@ def setup_previous_history(history, cfg):
 
 
 def setup_loss_details(train_log, cfg):
+    """
+    Set up loss details for training, including loss names and headers.
+
+    Parameters:
+    - train_log (object): Training log containing loss information.
+    - cfg (object): A configuration object containing training parameters.
+
+    Returns:
+    - loss_names (list): List of loss names.
+    - loss_headers (list): List of loss headers.
+    """
     loss_names = [loss_name for loss_name in train_log.meters.keys() if loss_name not in IGNORE_HEADERS]
     loss_headers = [TRAIN_NAME + '/' + loss_name for loss_name in loss_names]
     # check same loss headers if part of partial run
@@ -84,6 +106,18 @@ def setup_loss_details(train_log, cfg):
 
 
 def visual_evaluate(model, data_loader, cfg, device):
+    """
+    Perform visual evaluation of the model on a given data loader.
+
+    Parameters:
+    - model (object): The trained model to evaluate.
+    - data_loader (object): Data loader for the evaluation dataset.
+    - cfg (object): A configuration object containing evaluation parameters.
+    - device (object): Device to run the evaluation on.
+
+    Returns:
+    None
+    """
     logging.info('Saving visual')
 
     cpu_device = torch.device("cpu")
@@ -109,11 +143,22 @@ def visual_evaluate(model, data_loader, cfg, device):
 
         if len(plot_images) == FIG_NUM_IMAGES:
             break
-
     visualize_results(cfg.TRAIN.visual, plot_images, gt_bbs, dt_bbs)
 
 
 def checkpoint(model, history, cfg, epoch):
+    """
+    Save model checkpoints, update training history, and manage previous epoch weights.
+
+    Parameters:
+    - model (object): The trained model to save.
+    - history (dict): A dictionary containing training history.
+    - cfg (object): A configuration object containing training parameters.
+    - epoch (int): Current epoch number.
+
+    Returns:
+    None
+    """
     logging.info('Saving checkpoint')
 
     dict_model = model.state_dict()
@@ -144,6 +189,16 @@ def checkpoint(model, history, cfg, epoch):
 
 
 def main(cfg, device):
+    """
+    Main function for training a pedestrian detection model.
+
+    Parameters:
+    - cfg (object): A configuration object containing training parameters.
+    - device (object): Device (CPU or GPU) to perform training on.
+
+    Returns:
+    None
+    """
     # model
     model = ModelBuilder.build_detector(args=cfg.MODEL, weights=cfg.TRAIN.weights)
     model.to(device)

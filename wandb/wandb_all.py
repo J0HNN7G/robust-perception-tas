@@ -1,4 +1,4 @@
-
+"""Log all checkpoints to wandb"""
 # args
 import os
 import argparse

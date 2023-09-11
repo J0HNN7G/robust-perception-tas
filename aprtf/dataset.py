@@ -1,3 +1,4 @@
+"""Load pedestrian detection dataset"""
 # code altered from TorchVision 0.3 Object Detection Finetuning Tutorial
 # http://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
 
@@ -13,6 +14,15 @@ from aprtf.references import transforms as T
 
 
 def get_transform(train):
+    """
+    Get a composition of image transformation functions.
+
+    Args:
+        train (bool): A boolean flag indicating whether the transformations are for training.
+
+    Returns:
+        torchvision.transforms.Compose: A composition of transformation functions.
+    """
     transforms = []
     transforms.append(T.PILToTensor())
     transforms.append(T.ConvertImageDtype(torch.float))
@@ -22,7 +32,15 @@ def get_transform(train):
 
 
 class PedestrianDetectionDataset(torch.utils.data.Dataset):
+    """Custom dataset for pedestrian detection."""
     def __init__(self, odgt, transforms):
+        """
+        Initializes the dataset.
+
+        Args:
+            odgt (str or list): Either a JSON file path or a list of data samples (annotations).
+            transforms (callable): A list of image transformation functions.
+        """
         if isinstance(odgt, str):
             self.list_sample = [json.loads(x.rstrip()) for x in open(odgt, 'r')]
         elif isinstance(odgt, list):
@@ -33,6 +51,16 @@ class PedestrianDetectionDataset(torch.utils.data.Dataset):
         self.transforms = transforms
 
     def __getitem__(self, idx):
+        """
+        Retrieves a data sample from the dataset.
+
+        Args:
+            idx (int): The index of the data sample to retrieve.
+
+        Returns:
+            tuple: A tuple containing the image and target information 
+            (bounding boxes, labels, image ID, area, and iscrowd).
+        """
         # image
         img_path = self.list_sample[idx]['image']
         img = Image.open(img_path).convert("RGB")
@@ -58,4 +86,7 @@ class PedestrianDetectionDataset(torch.utils.data.Dataset):
         return img, target
 
     def __len__(self):
+        """
+        Returns the number of data samples in the dataset.
+        """
         return len(self.list_sample)

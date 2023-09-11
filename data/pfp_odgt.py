@@ -1,3 +1,4 @@
+"""Generate ODGT label files for PennFudanPed dataset"""
 # general
 import os
 import json
@@ -20,6 +21,19 @@ DATASET_NAME = 'PennFudanPed'
 
 
 def indices2odgt(odgt_fp, dir_p, indices, img_fps, mask_fps):
+    """
+    Generate ODGT label files for PennFudanPed dataset using given indices and file paths.
+
+    Parameters:
+    - odgt_fp (str): File path to save the ODGT label file.
+    - dir_p (str): Directory path to the dataset.
+    - indices (list): List of indices to process.
+    - img_fps (list): List of image file paths.
+    - mask_fps (list): List of mask file paths.
+
+    Returns:
+    None
+    """
     for idx in tqdm(indices):
         mask_path = os.path.join(dir_p, MASK_DIR_NAME, mask_fps[idx]) 
         mask = Image.open(mask_path)

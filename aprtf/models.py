@@ -1,3 +1,4 @@
+"""Build object detection components"""
 # code altered from MIT semantic segmentation repository
 # https://github.com/CSAILVision/semantic-segmentation-pytorch
 
@@ -10,8 +11,25 @@ import torchvision.models.detection as td
 
 
 class ModelBuilder:
+    """
+    Builder class for creating object detection models.
+
+    Methods:
+    - build_detector(args, weights, num_classes): Build an object detection model.
+    """
     @staticmethod
     def build_detector(args, weights, num_classes=2):
+        """
+        Build an object detection model.
+
+        Args:
+        - args: Model architecture and other arguments.
+        - weights (str): Path to pre-trained weights file.
+        - num_classes (int): Number of classes for the detector.
+
+        Returns:
+        - detector: An object detection model.
+        """
         pretrained = (len(weights) > 0)
         if args.arch == 'fasterrcnn_resnet50_fpn':
             if pretrained:
@@ -46,8 +64,24 @@ class ModelBuilder:
 
 
 class OptimizerBuilder:
+    """
+    Builder class for creating optimizers.
+
+    Methods:
+    - build_optimizer(args, model): Build an optimizer for a given model.
+    """
     @staticmethod
     def build_optimizer(args, model):
+        """
+        Build an optimizer for a given model.
+
+        Args:
+        - args: Optimizer configuration.
+        - model: The model for which the optimizer is built.
+
+        Returns:
+        - optimizer: The optimizer.
+        """
         params = [p for p in model.parameters() if p.requires_grad]
         if args.optim == 'sgd':
             optimizer = torch.optim.SGD(params, lr=args.lr,
@@ -59,8 +93,24 @@ class OptimizerBuilder:
 
 
 class LRScheduleBuilder:
+    """
+    Builder class for creating learning rate schedulers.
+
+    Methods:
+    - build_scheduler(args, optimizer): Build a learning rate scheduler for a given optimizer.
+    """
     @staticmethod
     def build_scheduler(args, optimizer):
+        """
+        Build a learning rate scheduler for a given optimizer.
+
+        Args:
+        - args: Learning rate scheduler configuration.
+        - optimizer: The optimizer to schedule the learning rate for.
+
+        Returns:
+        - lr_scheduler: The learning rate scheduler.
+        """
         if args.schedule == 'step':
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
                                                            step_size=args.step_size,

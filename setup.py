@@ -1,3 +1,4 @@
+"""Install APRTF package"""
 import setuptools
 
 with open('README.md', 'r') as fh:

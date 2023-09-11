@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
-"""Script for generating slurm batch experiments"""
+"""Generate slurm batch experiments"""
 import os
 import json
 import argparse
 
 # grid generation
 import numpy as np
+
 
 # constants
 LOC_OPTS = ['PERSONAL', 'EDI']

@@ -1,3 +1,4 @@
+"""Check progress of slurm batch experiments"""
 import os
 import json
 import argparse

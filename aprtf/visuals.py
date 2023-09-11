@@ -1,3 +1,4 @@
+"""Visualize pedestrian detection data"""
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -25,6 +26,15 @@ FIG_DPI = 75
 # plotting --------------------------------
 
 def bb2plot(bb):
+    """
+    Convert a bounding box to a set of corner points.
+
+    Parameters:
+    - bb (list): Bounding box coordinates [xmin, ymin, xmax, ymax].
+
+    Returns:
+    - corners (numpy array): Array of corner points.
+    """
     xmin, ymin, xmax, ymax = bb
     corners = np.array([[xmin, ymin], 
                         [xmin, ymax],
@@ -33,12 +43,35 @@ def bb2plot(bb):
     return corners
 
 def plot_bb(axis, selected_corners, color, linewidth):
+    """
+    Plot a bounding box on a given axis.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to plot on.
+    - selected_corners (list): List of corner points.
+    - color (str): Color of the bounding box.
+    - linewidth (int): Line width for the bounding box.
+
+    Returns:
+    None
+    """
     prev = selected_corners[-1]
     for corner in selected_corners:
         axis.plot([prev[0], corner[0]], [prev[1], corner[1]], color=color, linewidth=linewidth)
         prev = corner
 
 def plot_annotations(axis, im, scene_data_bb):
+    """
+    Plot ground truth annotations on an image.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to plot on.
+    - im (PIL image): The image to plot on.
+    - scene_data_bb (list): List of ground truth bounding boxes.
+
+    Returns:
+    None
+    """
     axis.imshow(im)
     axis.axis('off')
     axis.set_aspect('equal')
@@ -47,6 +80,18 @@ def plot_annotations(axis, im, scene_data_bb):
         plot_bb(axis, corners, **GT_CONFIG)
 
 def plot_results(axis, im, scene_data_bb, scene_data_pred):
+    """
+    Plot ground truth annotations and predicted bounding boxes on an image.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to plot on.
+    - im (PIL image): The image to plot on.
+    - scene_data_bb (list): List of ground truth bounding boxes.
+    - scene_data_pred (list): List of predicted bounding boxes.
+
+    Returns:
+    None
+    """
     axis.imshow(im)
     axis.axis('off')
     axis.set_aspect('equal')
@@ -63,11 +108,34 @@ def plot_results(axis, im, scene_data_bb, scene_data_pred):
 # drawing (with patches) --------------------------------
 
 def draw_bb(axis, bb, color, linewidth):
+    """
+    Draw a bounding box on a given axis using patches.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to draw on.
+    - bb (list): Bounding box coordinates [xmin, ymin, xmax, ymax].
+    - color (str): Color of the bounding box.
+    - linewidth (int): Line width for the bounding box.
+
+    Returns:
+    None
+    """
     rect = mpatches.Rectangle((bb[0], bb[1]), width=bb[2]-bb[0], height=bb[3]-bb[1],
                       edgecolor=color, facecolor='none', linewidth=linewidth)
     axis.add_patch(rect)
 
 def draw_annotations(axis, im, scene_data_bb):
+    """
+    Draw ground truth annotations on an image using patches.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to draw on.
+    - im (PIL image): The image to draw on.
+    - scene_data_bb (list): List of ground truth bounding boxes.
+
+    Returns:
+    None
+    """
     axis.imshow(im)
     axis.axis('off')
     axis.set_aspect('equal')
@@ -75,6 +143,18 @@ def draw_annotations(axis, im, scene_data_bb):
         draw_bb(axis, bb, **GT_CONFIG)
 
 def draw_results(axis, im, scene_data_bb, scene_data_pred):
+    """
+    Draw ground truth annotations and predicted bounding boxes on an image using patches.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to draw on.
+    - im (PIL image): The image to draw on.
+    - scene_data_bb (list): List of ground truth bounding boxes.
+    - scene_data_pred (list): List of predicted bounding boxes.
+
+    Returns:
+    None
+    """
     axis.imshow(im)
     axis.axis('off')
     axis.set_aspect('equal')
@@ -89,6 +169,18 @@ def draw_results(axis, im, scene_data_bb, scene_data_pred):
 # detection visualization 
 
 def visualize_results(visual_fp, images, gt_bbs, dt_bbs):
+    """
+    Visualize pedestrian detection results and save them to a file.
+
+    Parameters:
+    - visual_fp (str): File path to save the visualization.
+    - images (list): List of images to visualize.
+    - gt_bbs (list): List of ground truth bounding boxes.
+    - dt_bbs (list): List of predicted bounding boxes.
+
+    Returns:
+    None
+    """
     img_width = images[0].size[0] 
     img_height = images[0].size[1] 
     img_ratio = img_height / img_width

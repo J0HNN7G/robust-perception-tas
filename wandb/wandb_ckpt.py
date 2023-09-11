@@ -1,4 +1,4 @@
-
+"""Log experiment checkpoint to wandb"""
 # args
 import os
 import argparse
@@ -17,6 +17,15 @@ BEST_VAL_NAME = VAL_AP_NAME + '_best'
 
 
 def main(cfg):
+    """
+    Main function for performing logging with Wandb for a PyTorch pedestrian detection fine-tuning experiment.
+
+    Parameters:
+    - cfg (object): A configuration object containing experiment parameters.
+
+    Returns:
+    None
+    """
     # remove batch run from name:
     dataset_name = cfg.DATASET.path.split('/')[-1].lower()
     exp_name = f'{cfg.MODEL.arch}_{dataset_name}'

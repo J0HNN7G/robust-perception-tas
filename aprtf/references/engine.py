@@ -12,7 +12,8 @@ from .coco_utils import get_coco_api_from_dataset
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
+    metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1), fmt="{value:.6f}")
+    metric_logger.add_meter("time", utils.SmoothedValue(window_size=1))
     header = f"Epoch: [{epoch}]"
 
     lr_scheduler = None
@@ -23,7 +24,8 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
         lr_scheduler = torch.optim.lr_scheduler.LinearLR(
             optimizer, start_factor=warmup_factor, total_iters=warmup_iters
         )
-
+    
+    start_time = time.time()
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) if isinstance(v, torch.Tensor) else v for k, v in t.items()} for t in targets]
@@ -57,6 +59,8 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
 
         metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
+    metric_logger.update(time=time.time()-start_time)
+
     return metric_logger
 
 

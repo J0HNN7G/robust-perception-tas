@@ -259,7 +259,7 @@ def main(cfg, device):
 
         # update history
         history[TRAIN_EPOCH_NAME] = epoch
-        history[TRAIN_TIME] = train_log.meters['time'].total
+        history[TRAIN_TIME] = train_log.meters['time'].value
         history[TRAIN_LR_NAME] = lr_scheduler.get_last_lr()[-1]
 
         # add training metrics

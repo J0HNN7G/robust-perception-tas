@@ -93,7 +93,7 @@ if __name__ == '__main__':
     base_call = f"python {train_path} -c {config_path} -i {data_path} -o {ckpt_path}"
 
     # parameters
-    batch_size = [1, 4, 16, 64]
+    batch_size = [1, 2, 4, 8, 16, 32, 64]
     lrs = [0.005]
     step_sizes = [3]
     gammas = [0.1]

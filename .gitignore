@@ -8,10 +8,12 @@ ckpt/*
 slurm/*
 !slurm/slurm_check.py
 !slurm/slurm_gen.py
+!slurm/config_template.json
 # wandb
 wandb/*
 !wandb/wandb_ckpt.py
 !wandb/wandb_all.py
+!wandb/wandb_key_template.txt
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,visualstudiocode

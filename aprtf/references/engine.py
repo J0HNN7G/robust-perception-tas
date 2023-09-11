@@ -12,7 +12,7 @@ from .coco_utils import get_coco_api_from_dataset
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1), fmt="{value:.6f}")
+    metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
     metric_logger.add_meter("time", utils.SmoothedValue(window_size=1))
     header = f"Epoch: [{epoch}]"
 

@@ -36,7 +36,7 @@ TRAIN_NAME = 'train'
 VAL_NAME = 'val'
 TRAIN_EPOCH_NAME = f'{TRAIN_NAME}/epoch'
 TRAIN_LR_NAME = f'{TRAIN_NAME}/lr_last_iter'
-TRAIN_TIME = f'{TRAIN_NAME/time}'
+TRAIN_TIME = f'{TRAIN_NAME}/time'
 VAL_AP_NAME = f'{VAL_NAME}/AP_0.5:0.95:0.05'
 VAL_AR_NAME = f'{VAL_NAME}/AR_0.5:0.95:0.05'
 

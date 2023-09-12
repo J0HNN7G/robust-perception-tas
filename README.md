@@ -1,5 +1,9 @@
 # APRTF
-Robustness Testing Framework for Image Models in Autonomous Systems
+Robustness Testing Framework for Image Models in Autonomous Systems.
+
+## Structure
+
+![Diagram](docs/diagram.jpg)
 
 ##  Installation
 ```

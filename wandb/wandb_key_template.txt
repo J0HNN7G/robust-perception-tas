@@ -1,1 +1,1 @@
-<wandb API key>
+<wandb_api_key>

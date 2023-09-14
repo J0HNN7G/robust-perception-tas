@@ -1,22 +1,24 @@
 """Analyzer class for multi-step analysis"""
+# typing
 from __future__ import annotations
 from typing import Any, List, Callable
+
+# structure
+import torch
+
+from dataset import CacheDataset
+
+# logging
+from tqdm import tqdm
+from references.utils import SmoothedValue
 
 
 class Analyzer():
     """
     Analyzer class for Autonomous Perception Robustness Testing Framework.
 
-    Args:
-        data (List[iter]): List of perception data to be analyzed.
-        labels (List[iter]): List of perception labels corresponding to the data.
-        augmentation (List[Callable]): List of augmentation functions to be applied to data.
-        model (List[Callable]): List of models to be applied to data.
-        metric (List[Callable]): List of metric functions to evaluate the analysis.
-
     Attributes:
-        data (List[iter]): List of perception data to be analyzed.
-        labels (List[iter]): List of perception labels corresponding to the data.
+        data (List[torch.utils.data.Dataset]): List of perception data to be analyzed.
         augmentation (List[Callable]): List of augmentation functions to be applied to data.
         model (List[Callable]): List of models to be applied to data.
         metric (List[Callable]): List of metric functions to evaluate the analysis.
@@ -31,11 +33,9 @@ class Analyzer():
         __next__: Returns the next step of analysis.
         __len__: Returns the number of analysis steps.
     """
-
     def __init__(
         self, 
-        data: List[iter], 
-        labels: List[iter],
+        data: List[torch.utils.data.Dataset],
         augmentation: List[Callable],
         model: List[Callable],
         metric: List[Callable]
@@ -44,8 +44,7 @@ class Analyzer():
         Initializes the Analyzer object.
 
         Args:
-            data (List[iter]): List of perception data to be analyzed.
-            labels (List[iter]): List of perception labels corresponding to the data.
+            data (List[torch.utils.data.Dataset]): List of perception data to be analyzed.
             augmentation (List[Callable]): List of augmentation functions to be applied to data.
             model (List[Callable]): List of models to be applied to data.
             metric (List[Callable]): List of metric functions to evaluate the analysis.
@@ -53,25 +52,16 @@ class Analyzer():
         Raises:
             ValueError: If the length of any argument is not equal to the length of the data.
         """
-        for arg in [labels, augmentation, model, metric]:
+        for arg in [augmentation, model, metric]:
             if len(arg) != len(data):
                 raise ValueError('all arguments should have the same length')
 
         self.data = data
-        self.labels = labels
         self.augmentation = augmentation
         self.model = model
         self.metric = metric
-        self.cache = None
+        self.cache = [CacheDataset() for _ in range(len(data))]
 
-    def cache(self, cache: Any) -> None:
-        """
-        Caches the given value.
-
-        Args:
-            cache (Any): Value to be cached.
-        """
-        self.cache = cache
 
     def __iter__(self) -> Analyzer:
         """
@@ -83,25 +73,41 @@ class Analyzer():
         self.idx = 0
         return self
     
+
     def __next__(self) -> dict[str, Any]:
         """
         Returns the next analysis result.
 
         Returns:
-            dict[str, Any]: A dictionary containing components for next step of analysis.
+            SmoothedValue: An object containing results for the metric at next step of analysis.
         """
         curr_idx = self.idx
         self.idx = (self.idx + 1) % len(self.data)
 
-        result = {
-            'data': self.data[curr_idx],
-            'labels': self.labels[curr_idx],
-            'augmentation': self.augmentation[curr_idx],
-            'model': self.model[curr_idx],
-            'metric': self.metric[curr_idx],
-            'cache' : self.cache
-        }
-        return result
+        data = self.data[curr_idx]
+        model = self.model[curr_idx]
+        aug = self.augmentation[curr_idx]
+        metric = self.metric[curr_idx]
+        cache = self.cache[curr_idx]
+
+        for sample, target in tqdm(data):
+            pred = model(sample)
+            if aug is not None:
+                # robustness testing
+                aug_pred = model(aug(sample))
+            elif curr_idx > 0:
+                # multi-step analysis
+                self.cache[curr_idx-1] 
+                aug_pred = model()
+            else:
+                # later-stage augmentation
+                aug_pred = pred
+            result = metric(pred, aug_pred, target)
+
+            cache.update(aug_pred, target)
+        
+        return -1
+
 
     def __len__(self) -> int:
         """

@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import torchvision.transforms as T
 
 
 # Constants
@@ -124,6 +125,26 @@ def draw_bb(axis, bb, color, linewidth):
                       edgecolor=color, facecolor='none', linewidth=linewidth)
     axis.add_patch(rect)
 
+
+def draw_predictions(axis, im, scene_data_bb):
+    """
+    Draw ground truth annotations on an image using patches.
+
+    Parameters:
+    - axis (matplotlib axis): The axis to draw on.
+    - im (PIL image): The image to draw on.
+    - scene_data_bb (list): List of ground truth bounding boxes.
+
+    Returns:
+    None
+    """
+    axis.imshow(im)
+    axis.axis('off')
+    axis.set_aspect('equal')
+    for bb in scene_data_bb:
+        draw_bb(axis, bb, **DT_CONFIG)
+
+
 def draw_annotations(axis, im, scene_data_bb):
     """
     Draw ground truth annotations on an image using patches.
@@ -141,6 +162,7 @@ def draw_annotations(axis, im, scene_data_bb):
     axis.set_aspect('equal')
     for bb in scene_data_bb:
         draw_bb(axis, bb, **GT_CONFIG)
+
 
 def draw_results(axis, im, scene_data_bb, scene_data_pred):
     """
@@ -204,4 +226,75 @@ def visualize_results(visual_fp, images, gt_bbs, dt_bbs):
 
     plt.savefig(visual_fp, dpi=FIG_DPI, bbox_inches='tight')
 
+
+def show_predictions(images, output):
+    """
+    Show pedestrian detection predictions.
+
+    Parameters:
+    - images (list): List of images to visualize.
+    - output (list): List of model predictions.
+
+    Returns:
+    None
+    """
+    img_transform = T.ToPILImage()
+    images = list(img_transform(image) for image in images)
+
+    img_width = images[0].size[0] 
+    img_height = images[0].size[1] 
+    img_ratio = img_height / img_width
+
+    fig_height = FIG_WIDTH * img_ratio
+    fig, _ = plt.subplots(FIG_NROWS, FIG_NCOLS, figsize=(FIG_WIDTH, fig_height))
+    fig.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+
+    num_visuals = min(len(images), len(fig.axes))
+    for i in range(num_visuals):
+        draw_predictions(fig.axes[i], images[i], output[i]['boxes'].detach().numpy())
+    # clear the rest
+    for j in range(num_visuals, len(fig.axes)):
+        fig.axes[j].axis('off')
+        fig.axes[j].set_aspect('equal')
+    
+    plt.show()
+
+
+def show_results(images, target, output):
+    """
+    Show pedestrian detection results
+
+    Parameters:
+    - images (list): List of images to show.
+    - target (list): List of targets ground truth bounding boxes.
+    - output (list): List of model predictions.
+
+    Returns:
+    None
+    """
+    img_transform = T.ToPILImage()
+    images = list(img_transform(image) for image in images)
+
+    img_width = images[0].size[0] 
+    img_height = images[0].size[1] 
+    img_ratio = img_height / img_width
+
+    fig_height = FIG_WIDTH * img_ratio
+    fig, _ = plt.subplots(FIG_NROWS, FIG_NCOLS, figsize=(FIG_WIDTH, fig_height))
+    fig.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+
+    num_visuals = min(len(images), len(fig.axes))
+    for i in range(num_visuals):
+        draw_results(fig.axes[i], images[i], target[i]['boxes'].detach().numpy(), output[i]['boxes'].detach().numpy())
+    # clear the rest
+    for j in range(num_visuals, len(fig.axes)):
+        fig.axes[j].axis('off')
+        fig.axes[j].set_aspect('equal')
+    
+    # legend
+    gt_patch = mpatches.Patch(color=GT_CONFIG['color'], label='GT')
+    dt_patch = mpatches.Patch(color=DT_CONFIG['color'], label='DT')
+    fig.axes[1].legend(handles = [gt_patch, dt_patch], loc='upper center', fancybox=False, framealpha=1, borderpad=1, edgecolor='black')
+
+    plt.show()
 

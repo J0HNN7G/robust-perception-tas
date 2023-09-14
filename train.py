@@ -26,8 +26,8 @@ import numpy as np
 from aprtf.config import cfg
 from aprtf.models import ModelBuilder, OptimizerBuilder, LRScheduleBuilder
 from aprtf.dataset import PedestrianDetectionDataset,  get_transform
-from aprtf.references.engine import train_one_epoch, evaluate
-from aprtf.references.utils import collate_fn
+from aprtf.torchvision_detection.engine import train_one_epoch, evaluate
+from aprtf.torchvision_detection.utils import collate_fn
 from aprtf.visuals import visualize_results, FIG_NUM_IMAGES
 
 

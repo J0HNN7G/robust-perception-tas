@@ -10,7 +10,7 @@ import torch
 from PIL import Image
 
 # bounding boxes
-from aprtf.references import transforms as T
+from aprtf.torchvision_detection import transforms as T
 
 
 def get_transform(train):

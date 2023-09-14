@@ -53,17 +53,14 @@ class PILToTensor(nn.Module):
         return image, target
 
 
-class ToDtype(nn.Module):
-    def __init__(self, dtype: torch.dtype, scale: bool = False) -> None:
+class ConvertImageDtype(nn.Module):
+    def __init__(self, dtype: torch.dtype) -> None:
         super().__init__()
         self.dtype = dtype
-        self.scale = scale
 
     def forward(
         self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
     ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
-        if not self.scale:
-            return image.to(dtype=self.dtype), target
         image = F.convert_image_dtype(image, self.dtype)
         return image, target
 
@@ -409,6 +406,38 @@ class FixedSizeCrop(nn.Module):
             img, target = self._pad(img, target, [0, 0, pad_right, pad_bottom])
 
         return img, target
+
+
+class MaxSize(nn.Module):
+    def __init__(
+        self,
+        max_size: int,
+        interpolation: InterpolationMode = InterpolationMode.BILINEAR,
+    ):
+        super().__init__()
+        self.max_size = max_size
+        self.interpolation = interpolation
+
+    def forward(
+        self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
+    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
+        _, orig_height, orig_width = F.get_dimensions(image)
+
+        r = self.max_size / max(orig_height, orig_width)
+        new_width = int(orig_width * r)
+        new_height = int(orig_height * r)
+
+        image = F.resize(image, [new_height, new_width], interpolation=self.interpolation, antialias=True)
+
+        if target is not None:
+            target["boxes"][:, 0::2] *= new_width / orig_width
+            target["boxes"][:, 1::2] *= new_height / orig_height
+            if "masks" in target:
+                target["masks"] = F.resize(
+                    target["masks"], [new_height, new_width], interpolation=InterpolationMode.NEAREST
+                )
+
+        return image, target
 
 
 class RandomShortestSize(nn.Module):

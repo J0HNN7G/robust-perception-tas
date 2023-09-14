@@ -1,16 +1,16 @@
 from collections import defaultdict
 
 import torch
-import transforms as reference_transforms
+from . import transforms as reference_transforms
 
 
 def get_modules(use_v2):
     # We need a protected import to avoid the V2 warning in case just V1 is used
     if use_v2:
+        import torchvision.datapoints
         import torchvision.transforms.v2
-        import torchvision.tv_tensors
 
-        return torchvision.transforms.v2, torchvision.tv_tensors
+        return torchvision.transforms.v2, torchvision.datapoints
     else:
         return reference_transforms, None
 
@@ -28,16 +28,16 @@ class DetectionPresetTrain:
         use_v2=False,
     ):
 
-        T, tv_tensors = get_modules(use_v2)
+        T, datapoints = get_modules(use_v2)
 
         transforms = []
         backend = backend.lower()
-        if backend == "tv_tensor":
-            transforms.append(T.ToImage())
+        if backend == "datapoint":
+            transforms.append(T.ToImageTensor())
         elif backend == "tensor":
             transforms.append(T.PILToTensor())
         elif backend != "pil":
-            raise ValueError(f"backend can be 'tv_tensor', 'tensor' or 'pil', but got {backend}")
+            raise ValueError(f"backend can be 'datapoint', 'tensor' or 'pil', but got {backend}")
 
         if data_augmentation == "hflip":
             transforms += [T.RandomHorizontalFlip(p=hflip_prob)]
@@ -54,7 +54,7 @@ class DetectionPresetTrain:
                 T.RandomHorizontalFlip(p=hflip_prob),
             ]
         elif data_augmentation == "ssd":
-            fill = defaultdict(lambda: mean, {tv_tensors.Mask: 0}) if use_v2 else list(mean)
+            fill = defaultdict(lambda: mean, {datapoints.Mask: 0}) if use_v2 else list(mean)
             transforms += [
                 T.RandomPhotometricDistort(),
                 T.RandomZoomOut(fill=fill),
@@ -71,15 +71,14 @@ class DetectionPresetTrain:
 
         if backend == "pil":
             # Note: we could just convert to pure tensors even in v2.
-            transforms += [T.ToImage() if use_v2 else T.PILToTensor()]
+            transforms += [T.ToImageTensor() if use_v2 else T.PILToTensor()]
 
-        transforms += [T.ToDtype(torch.float, scale=True)]
+        transforms += [T.ConvertImageDtype(torch.float)]
 
         if use_v2:
             transforms += [
-                T.ConvertBoundingBoxFormat(tv_tensors.BoundingBoxFormat.XYXY),
-                T.SanitizeBoundingBoxes(),
-                T.ToPureTensor(),
+                T.ConvertBoundingBoxFormat(datapoints.BoundingBoxFormat.XYXY),
+                T.SanitizeBoundingBox(),
             ]
 
         self.transforms = T.Compose(transforms)
@@ -95,19 +94,15 @@ class DetectionPresetEval:
         backend = backend.lower()
         if backend == "pil":
             # Note: we could just convert to pure tensors even in v2?
-            transforms += [T.ToImage() if use_v2 else T.PILToTensor()]
+            transforms += [T.ToImageTensor() if use_v2 else T.PILToTensor()]
         elif backend == "tensor":
             transforms += [T.PILToTensor()]
-        elif backend == "tv_tensor":
-            transforms += [T.ToImage()]
+        elif backend == "datapoint":
+            transforms += [T.ToImageTensor()]
         else:
-            raise ValueError(f"backend can be 'tv_tensor', 'tensor' or 'pil', but got {backend}")
+            raise ValueError(f"backend can be 'datapoint', 'tensor' or 'pil', but got {backend}")
 
-        transforms += [T.ToDtype(torch.float, scale=True)]
-
-        if use_v2:
-            transforms += [T.ToPureTensor()]
-
+        transforms += [T.ConvertImageDtype(torch.float)]
         self.transforms = T.Compose(transforms)
 
     def __call__(self, img, target):

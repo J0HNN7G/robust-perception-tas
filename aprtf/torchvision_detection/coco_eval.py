@@ -11,13 +11,14 @@ from pycocotools.cocoeval import COCOeval
 
 
 class CocoEvaluator:
-    def __init__(self, coco_gt, iou_types):
+    def __init__(self, coco_gt, iou_types, score_min=0.0):
         if not isinstance(iou_types, (list, tuple)):
             raise TypeError(f"This constructor expects iou_types of type list or tuple, instead  got {type(iou_types)}")
         coco_gt = copy.deepcopy(coco_gt)
         self.coco_gt = coco_gt
 
         self.iou_types = iou_types
+        self.score_min = score_min
         self.coco_eval = {}
         for iou_type in iou_types:
             self.coco_eval[iou_type] = COCOeval(coco_gt, iouType=iou_type)
@@ -49,7 +50,7 @@ class CocoEvaluator:
     def accumulate(self):
         for coco_eval in self.coco_eval.values():
             coco_eval.accumulate()
-
+            
     def summarize(self):
         for iou_type, coco_eval in self.coco_eval.items():
             print(f"IoU metric: {iou_type}")
@@ -70,10 +71,11 @@ class CocoEvaluator:
             if len(prediction) == 0:
                 continue
 
-            boxes = prediction["boxes"]
+            keep_idxs = [prediction["scores"] >= self.score_min]
+            boxes = prediction["boxes"][keep_idxs]
             boxes = convert_to_xywh(boxes).tolist()
-            scores = prediction["scores"].tolist()
-            labels = prediction["labels"].tolist()
+            scores = prediction["scores"][keep_idxs].tolist()
+            labels = prediction["labels"][keep_idxs].tolist()
 
             coco_results.extend(
                 [
@@ -94,9 +96,10 @@ class CocoEvaluator:
             if len(prediction) == 0:
                 continue
 
-            scores = prediction["scores"]
-            labels = prediction["labels"]
-            masks = prediction["masks"]
+            keep_idxs = [prediction["scores"] >= self.score_min]
+            scores = prediction["scores"][keep_idxs]
+            labels = prediction["labels"][keep_idxs]
+            masks = prediction["masks"][keep_idxs]
 
             masks = masks > 0.5
 
@@ -128,11 +131,12 @@ class CocoEvaluator:
             if len(prediction) == 0:
                 continue
 
-            boxes = prediction["boxes"]
+            keep_idxs = [prediction["scores"] >= self.score_min]
+            boxes = prediction["boxes"][keep_idxs]
             boxes = convert_to_xywh(boxes).tolist()
-            scores = prediction["scores"].tolist()
-            labels = prediction["labels"].tolist()
-            keypoints = prediction["keypoints"]
+            scores = prediction["scores"][keep_idxs].tolist()
+            labels = prediction["labels"][keep_idxs].tolist()
+            keypoints = prediction["keypoints"][keep_idxs]
             keypoints = keypoints.flatten(start_dim=1).tolist()
 
             coco_results.extend(

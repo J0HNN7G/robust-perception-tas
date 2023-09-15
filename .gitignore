@@ -8,7 +8,7 @@ ckpt/*
 slurm/*
 !slurm/slurm_check.py
 !slurm/slurm_gen.py
-!slurm/config_template.json
+!slurm/slurm_config_template.json
 # wandb
 wandb/*
 !wandb/wandb_ckpt.py

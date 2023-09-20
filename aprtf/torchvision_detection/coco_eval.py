@@ -7,11 +7,10 @@ import pycocotools.mask as mask_util
 import torch
 from . import utils
 from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
 
 
 class CocoEvaluator:
-    def __init__(self, coco_gt, iou_types, score_min=0.0):
+    def __init__(self, COCOeval, coco_gt, iou_types, score_min=0.0):
         if not isinstance(iou_types, (list, tuple)):
             raise TypeError(f"This constructor expects iou_types of type list or tuple, instead  got {type(iou_types)}")
         coco_gt = copy.deepcopy(coco_gt)
@@ -50,7 +49,7 @@ class CocoEvaluator:
     def accumulate(self):
         for coco_eval in self.coco_eval.values():
             coco_eval.accumulate()
-            
+
     def summarize(self):
         for iou_type, coco_eval in self.coco_eval.items():
             print(f"IoU metric: {iou_type}")

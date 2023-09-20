@@ -49,13 +49,14 @@ class COCOeval:
     #  counts     - [T,R,K,A,M] parameter dimensions (see above)
     #  precision  - [TxRxKxAxM] precision for every evaluation setting
     #  recall     - [TxKxAxM] max recall for every evaluation setting
-    # Note: precision and recall==-1 for settings with no gt objects.
+    #  fpr        - [TxRxKxAxM] fpr for every evaluation setting   
+    # Note: precision, recall and fpr==-1 for settings with no gt objects.
     #
     # See also coco, mask, pycocoDemo, pycocoEvalDemo
     #
     # Microsoft COCO Toolbox.      version 2.0
     # Data, paper, and tutorials available at:  http://mscoco.org/
-    # Code written by Piotr Dollar and Tsung-Yi Lin, 2015.
+    # Code written by Piotr Dollar and Tsung-Yi Lin, 2015. Addition by Jonathan Gustafsson Frennert
     # Licensed under the Simplified BSD License [see coco/license.txt]
     def __init__(self, cocoGt=None, cocoDt=None, iouType='segm'):
         '''
@@ -334,6 +335,8 @@ class COCOeval:
         precision   = -np.ones((T,R,K,A,M)) # -1 for the precision of absent categories
         recall      = -np.ones((T,K,A,M))
         scores      = -np.ones((T,R,K,A,M))
+        # added on 
+        fpr         = -np.ones((T,R,K,A,M))
 
         # create dictionary for future indexing
         _pe = self._paramsEval
@@ -375,8 +378,8 @@ class COCOeval:
                     tps = np.logical_and(               dtm,  np.logical_not(dtIg) )
                     fps = np.logical_and(np.logical_not(dtm), np.logical_not(dtIg) )
 
-                    tp_sum = np.cumsum(tps, axis=1).astype(dtype=np.float)
-                    fp_sum = np.cumsum(fps, axis=1).astype(dtype=np.float)
+                    tp_sum = np.cumsum(tps, axis=1).astype(dtype=float)
+                    fp_sum = np.cumsum(fps, axis=1).astype(dtype=float)
                     for t, (tp, fp) in enumerate(zip(tp_sum, fp_sum)):
                         tp = np.array(tp)
                         fp = np.array(fp)
@@ -413,7 +416,8 @@ class COCOeval:
             'counts': [T, R, K, A, M],
             'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'precision': precision,
-            'recall':   recall,
+            'recall':  recall,
+            'fpr':   fpr,
             'scores': scores,
         }
         toc = time.time()

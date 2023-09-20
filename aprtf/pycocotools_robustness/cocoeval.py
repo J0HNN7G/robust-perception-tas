@@ -7,6 +7,23 @@ from collections import defaultdict
 from . import mask as maskUtils
 import copy
 
+
+METRIC_DICT = {
+    'ap' : {
+        'titleStr': 'Average Precision',
+        'typeStr': '(AP)'
+    },
+    'ar' : {
+        'titleStr': 'Average Recall',
+        'typeStr': '(AR)'
+    },
+    'fpr' : {
+        'titleStr': 'False Positive Rate',
+        'typeStr': '(FPR)'
+    }
+}
+
+
 class COCOeval:
     # Interface for evaluating detection on the Microsoft COCO dataset.
     #
@@ -336,7 +353,7 @@ class COCOeval:
         recall      = -np.ones((T,K,A,M))
         scores      = -np.ones((T,R,K,A,M))
         # added on 
-        fpr         = -np.ones((T,R,K,A,M))
+        fpr         = -np.ones((T,K,A,M))
 
         # create dictionary for future indexing
         _pe = self._paramsEval
@@ -375,11 +392,12 @@ class COCOeval:
                     npig = np.count_nonzero(gtIg==0 )
                     if npig == 0:
                         continue
-                    tps = np.logical_and(               dtm,  np.logical_not(dtIg) )
+                    tps = np.logical_and(dtm,  np.logical_not(dtIg) )
                     fps = np.logical_and(np.logical_not(dtm), np.logical_not(dtIg) )
 
                     tp_sum = np.cumsum(tps, axis=1).astype(dtype=float)
                     fp_sum = np.cumsum(fps, axis=1).astype(dtype=float)
+
                     for t, (tp, fp) in enumerate(zip(tp_sum, fp_sum)):
                         tp = np.array(tp)
                         fp = np.array(fp)
@@ -393,6 +411,8 @@ class COCOeval:
                             recall[t,k,a,m] = rc[-1]
                         else:
                             recall[t,k,a,m] = 0
+
+                        fpr[t,k,a,m] = fp / len(E)
 
                         # numpy is slow without cython optimization for accessing elements
                         # use python array gets significant speed improvement
@@ -428,17 +448,17 @@ class COCOeval:
         Compute and display summary metrics for evaluation results.
         Note this functin can *only* be applied on the default parameter setting
         '''
-        def _summarize( ap=1, iouThr=None, areaRng='all', maxDets=100 ):
+        def _summarize( metric='ap', iouThr=None, areaRng='all', maxDets=100 ):
             p = self.params
             iStr = ' {:<18} {} @[ IoU={:<9} | area={:>6s} | maxDets={:>3d} ] = {:0.3f}'
-            titleStr = 'Average Precision' if ap == 1 else 'Average Recall'
-            typeStr = '(AP)' if ap==1 else '(AR)'
+            titleStr = METRIC_DICT[metric]['titleStr']
+            typeStr = METRIC_DICT[metric]['typeStr']
             iouStr = '{:0.2f}:{:0.2f}'.format(p.iouThrs[0], p.iouThrs[-1]) \
                 if iouThr is None else '{:0.2f}'.format(iouThr)
 
             aind = [i for i, aRng in enumerate(p.areaRngLbl) if aRng == areaRng]
             mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
-            if ap == 1:
+            if metric == 'ap':
                 # dimension of precision: [TxRxKxAxM]
                 s = self.eval['precision']
                 # IoU
@@ -446,13 +466,23 @@ class COCOeval:
                     t = np.where(iouThr == p.iouThrs)[0]
                     s = s[t]
                 s = s[:,:,:,aind,mind]
-            else:
+            elif metric == 'ar':
                 # dimension of recall: [TxKxAxM]
                 s = self.eval['recall']
                 if iouThr is not None:
                     t = np.where(iouThr == p.iouThrs)[0]
                     s = s[t]
                 s = s[:,:,aind,mind]
+            elif metric == 'fpr':
+                # dimension of false positive rate: [TxKxAxM]
+                s = self.eval['fpr']
+                if iouThr is not None:
+                    t = np.where(iouThr == p.iouThrs)[0]
+                    s = s[t]
+                s = s[:,:,aind,mind]
+            else:
+                raise NotImplementedError('Metric Not Implemented!')
+            
             if len(s[s>-1])==0:
                 mean_s = -1
             else:
@@ -460,32 +490,35 @@ class COCOeval:
             print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
         def _summarizeDets():
-            stats = np.zeros((12,))
-            stats[0] = _summarize(1)
-            stats[1] = _summarize(1, iouThr=.5, maxDets=self.params.maxDets[2])
-            stats[2] = _summarize(1, iouThr=.75, maxDets=self.params.maxDets[2])
-            stats[3] = _summarize(1, areaRng='small', maxDets=self.params.maxDets[2])
-            stats[4] = _summarize(1, areaRng='medium', maxDets=self.params.maxDets[2])
-            stats[5] = _summarize(1, areaRng='large', maxDets=self.params.maxDets[2])
-            stats[6] = _summarize(0, maxDets=self.params.maxDets[0])
-            stats[7] = _summarize(0, maxDets=self.params.maxDets[1])
-            stats[8] = _summarize(0, maxDets=self.params.maxDets[2])
-            stats[9] = _summarize(0, areaRng='small', maxDets=self.params.maxDets[2])
-            stats[10] = _summarize(0, areaRng='medium', maxDets=self.params.maxDets[2])
-            stats[11] = _summarize(0, areaRng='large', maxDets=self.params.maxDets[2])
+            stats = np.zeros((15,))
+            stats[0] = _summarize('ap')
+            stats[1] = _summarize('ap', iouThr=.5, maxDets=self.params.maxDets[2])
+            stats[2] = _summarize('ap', iouThr=.75, maxDets=self.params.maxDets[2])
+            stats[3] = _summarize('ap', areaRng='small', maxDets=self.params.maxDets[2])
+            stats[4] = _summarize('ap', areaRng='medium', maxDets=self.params.maxDets[2])
+            stats[5] = _summarize('ap', areaRng='large', maxDets=self.params.maxDets[2])
+            stats[6] = _summarize('ar', maxDets=self.params.maxDets[0])
+            stats[7] = _summarize('ar', maxDets=self.params.maxDets[1])
+            stats[8] = _summarize('ar', maxDets=self.params.maxDets[2])
+            stats[9] = _summarize('ar', areaRng='small', maxDets=self.params.maxDets[2])
+            stats[10] = _summarize('ar', areaRng='medium', maxDets=self.params.maxDets[2])
+            stats[11] = _summarize('ar', areaRng='large', maxDets=self.params.maxDets[2])
+            stats[12] = _summarize('fpr', iouThr=.8, areaRng='small', maxDets=self.params.maxDets[2])
+            stats[13] = _summarize('fpr', iouThr=.8, areaRng='medium', maxDets=self.params.maxDets[2])
+            stats[14] = _summarize('fpr', iouThr=.8, areaRng='large', maxDets=self.params.maxDets[2])
             return stats
         def _summarizeKps():
             stats = np.zeros((10,))
-            stats[0] = _summarize(1, maxDets=20)
-            stats[1] = _summarize(1, maxDets=20, iouThr=.5)
-            stats[2] = _summarize(1, maxDets=20, iouThr=.75)
-            stats[3] = _summarize(1, maxDets=20, areaRng='medium')
-            stats[4] = _summarize(1, maxDets=20, areaRng='large')
-            stats[5] = _summarize(0, maxDets=20)
-            stats[6] = _summarize(0, maxDets=20, iouThr=.5)
-            stats[7] = _summarize(0, maxDets=20, iouThr=.75)
-            stats[8] = _summarize(0, maxDets=20, areaRng='medium')
-            stats[9] = _summarize(0, maxDets=20, areaRng='large')
+            stats[0] = _summarize('ap', maxDets=20)
+            stats[1] = _summarize('ap', maxDets=20, iouThr=.5)
+            stats[2] = _summarize('ap', maxDets=20, iouThr=.75)
+            stats[3] = _summarize('ap', maxDets=20, areaRng='medium')
+            stats[4] = _summarize('ap', maxDets=20, areaRng='large')
+            stats[5] = _summarize('ar', maxDets=20)
+            stats[6] = _summarize('ar', maxDets=20, iouThr=.5)
+            stats[7] = _summarize('ar', maxDets=20, iouThr=.75)
+            stats[8] = _summarize('ar', maxDets=20, areaRng='medium')
+            stats[9] = _summarize('ar', maxDets=20, areaRng='large')
             return stats
         if not self.eval:
             raise Exception('Please run accumulate() first')

@@ -412,7 +412,8 @@ class COCOeval:
                         else:
                             recall[t,k,a,m] = 0
 
-                        fpr[t,k,a,m] = fp / len(E)
+                        # understand structure better
+                        #fpr[t,k,a,m] = fp / len(t+1)
 
                         # numpy is slow without cython optimization for accessing elements
                         # use python array gets significant speed improvement

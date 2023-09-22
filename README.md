@@ -84,3 +84,12 @@ python train.py -c <config_filepath> -i <train_val_odgt_dirpath> -o <checkpoint_
 ├── config.yaml             # configuration file (updated with train.py arguments)
 └── log.txt                 # model training logs
 ```
+
+## Evaluation
+
+See the ```dev.ipynb``` for how the framework can be used on the [NuScenes](https://www.nuscenes.org/) dataset using the multi-stage analysis proposed in ["Perception robustness testing at different levels of generality"](https://www.journalfieldrobotics.org/FR/Papers_files/10_Pezzementi.pdf).
+
+Many of the metrics are in the process of implementation, thus not accesible at this time:
+- Pathifier (under implementation)
+- Roboticizer (not started)
+- Closed-Loop Control Simulator (not started)
